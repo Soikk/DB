@@ -134,7 +134,16 @@ static int strnatcmp0(nat_char const *a, nat_char const *b, int fold_case)
 
 	  /* process run of digits */
 	  if (nat_isdigit(ca)  &&  nat_isdigit(cb)) {
-	       fractional = (ca == '0' || cb == '0');
+	  	/*
+	  		Modified by Soikk for the purpose of DB
+	  		To revert to original version, remove this comment,
+	  		the uncommented code inside this if statement and
+	  		uncomment the remaining piece of code inside this
+	  		if statement
+	  	*/
+	  	   if ((result = compare_right(a+ai, b+bi)) != 0)
+		    return result;
+	       /*fractional = (ca == '0' || cb == '0');
 
 	       if (fractional) {
 		    if ((result = compare_left(a+ai, b+bi)) != 0)
@@ -142,7 +151,7 @@ static int strnatcmp0(nat_char const *a, nat_char const *b, int fold_case)
 	       } else {
 		    if ((result = compare_right(a+ai, b+bi)) != 0)
 			 return result;
-	       }
+	       }*/
 	  }
 
 	  if (!ca && !cb) {

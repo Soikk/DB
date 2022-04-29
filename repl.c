@@ -5,6 +5,7 @@ inputBuffer *newInputBuffer(void){
 	inputBuffer *in = malloc(sizeof(inputBuffer));
 	in->buffer = NULL;
 	in->inputSize = 0;
+	
 	return in;
 }
 

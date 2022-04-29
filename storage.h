@@ -10,8 +10,11 @@
 typedef struct{
 	char path[MAXPATH];
 	char tags[MAXTAGS];
+	int numTags;
 } row;
 
+
+row *newRow(const char *path);
 
 void split(const char *src, char sep, char ***arr, int *len);
 
@@ -20,5 +23,7 @@ void swapWords(char ***arr, int a, int b);
 char *normalizeTag(char *tag);
 
 void insertTag(row *r, char *tag);
+
+void removeTag(row *r, char *tag);
 
 #endif

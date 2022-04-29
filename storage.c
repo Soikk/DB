@@ -1,56 +1,44 @@
 #include "db.h"
 
 
+row *newRow(const char path[MAXPATH]){
+	row *nr = malloc(sizeof(row));
+	memcpy(nr->path, path, MAXPATH);
+	memcpy(nr->tags, "\0", MAXTAGS);
+	nr->numTags = 0;
 
+	return nr;
+}
 
 // Splits src into words based on a separator character (sep) and stores them in arr, and the length in len. Inspired by https://github.com/joshdk/tag/blob/master/src/dsv.c's split
 void split(const char *src, char sep, char ***arr, int *len){
-	int i = 0, asize = 1, ai = 0, wsize = 1, wi = 0;
-	char c = 0;
+	int slen = 0, ai = 0, wnum = 0, wlen = 0;
 
-	(*arr) = malloc(asize*sizeof(char*));
-	(*arr)[ai] = malloc(wsize*sizeof(char));
+	while(src[slen] != '\0'){
+		if(src[slen] == sep){
+			++wnum;
+		}
+		++slen;
+	}
+	if(slen != 0 && src[slen-1] != sep){
+		++wnum;
+	}
+	++slen;
 
-	while((c = src[i]) != '\0'){
-		// If there's a new word (new array index) reallocate the array and allocate space for it
-		if(wi == 0){
-			char **tmp;
-			if((tmp = realloc((*arr), (asize+ai)*sizeof(char*))) != NULL){
-				*arr = tmp;
-				tmp = NULL;
-			}else{
-				fprintf(stderr, "Error reallocating array (split)");
-				exit(EXIT_FAILURE);
+	*arr = calloc((wnum+1), sizeof(char*));
+	for(int i = 0; i < slen; ++i){
+		if(src[i] == sep || src[i] == '\0'){
+			(*arr)[ai] = calloc(wlen+1, sizeof(char));
+			for(int j = i-wlen, k = 0; j < i; ++j, ++k){
+				(*arr)[ai][k] = src[j];
 			}
-			(*arr)[ai] = malloc(wsize*sizeof(char));
-		}
-		// Allocate space for a new character in a word
-		char *tmp;
-		if((tmp = realloc((*arr)[ai], (wsize+wi)*sizeof(char))) != NULL){
-			strcpy(tmp, (*arr)[ai]);
-			(*arr)[ai] = tmp;
-			tmp = NULL;
-		}else{
-			fprintf(stderr, "Error reallocating word (split)");
-			exit(EXIT_FAILURE);
-		}
-		// If the character is a separator, terminate the string and increment the array index; if not, assign the character and increment the word index
-		if(c == sep){
-			(*arr)[ai][wi] = '\0';
-			wi = 0;
 			++ai;
+			wlen = 0;
 		}else{
-			(*arr)[ai][wi] = c;
-			++wi;
+			++wlen;
 		}
-		++i;
 	}
-	if(src[i-1] != sep){
-		(*arr)[ai][wi] = '\0';
-		++ai;
-	}
-	(*arr)[ai] = NULL;
-	*len = ai;
+	*len = wnum;
 }
 
 void swapWords(char ***arr, int a, int b){
@@ -70,14 +58,19 @@ char *normalizeTag(char *tag){
 
 // Adds a tag in the tags array in the row r, sorted by natural string comparison with strnatcmp
 // We assume that when adding a tag all other tags are already sorted
+// Nothing is done if the tag is already in the tags
 void insertTag(row *r, char *tag){
+	int l, ltag = len(tag);
+	if(ltag == 0){
+		return;
+	}
 
 	tag = normalizeTag(tag);
 
 	// Dump tags into array of strings and add tag
 	char **arr, **tmp;
-	int l;
 	split(r->tags, ';', &arr, &l);
+	
 	if((tmp = realloc(arr, (l+1)*sizeof(char*))) != NULL){
 		arr = tmp;
 		tmp = NULL;
@@ -108,15 +101,56 @@ void insertTag(row *r, char *tag){
 	++l; // Succesfully added new tag
 
 	// Insert tags back into tags member of row structure with the ';' separator in between them
-	int g = 0;
+	int tagnum = 0;
 	for(int i = 0; i < l; ++i){
 		int j = 0;
 		while(arr[i][j] != '\0'){
-			r->tags[g] = arr[i][j];
+			r->tags[tagnum] = arr[i][j];
 			++j;
-			++g;
+			++tagnum;
 		}
-		r->tags[g++] = ';';
+		r->tags[tagnum++] = ';';
 	}
-	r->tags[g] = '\0';
+	r->tags[tagnum] = '\0';
+	r->numTags = l;
+}
+
+// Remove a tag from the tags array in the row r
+// Nothing is done if the tag isnt in the tags
+void removeTag(row *r, char *tag){
+	int l, ltag = len(tag);
+	if(ltag == 0){
+		return;
+	}
+
+	tag = normalizeTag(tag);
+
+	// Dump tags into array of strings
+	char **arr;
+	split(r->tags, ';', &arr, &l);
+
+	// Search for tag and remove it
+	for(int i = 0; i <= l; ++i){
+		if(sameStr(arr[i], tag)){
+			for(int j = i; j < l; ++j){
+				arr[j] = arr[j+1];
+			}
+			--l;
+			break;
+		}
+	}
+
+	// Insert tags back into tags member of row structure with the ';' separator in between them
+	int tagnum = 0;
+	for(int i = 0; i < l; ++i){
+		int j = 0;
+		while(arr[i][j] != '\0'){
+			r->tags[tagnum] = arr[i][j];
+			++j;
+			++tagnum;
+		}
+		r->tags[tagnum++] = ';';
+	}
+	r->tags[tagnum] = '\0';
+	r->numTags = l;
 }
