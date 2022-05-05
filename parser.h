@@ -10,10 +10,6 @@ typedef enum {
 } metaCommandStatus;
 
 
-uint16_t len(const char *s);
-
-bool sameStr(const char* s1, const char *s2);
-
 int handleMetaCommand(inputBuffer *in);
 
 int handleInput(inputBuffer *in);

@@ -10,7 +10,9 @@
 typedef struct{
 	char path[MAXPATH];
 	char tags[MAXTAGS];
-	int numTags;
+	uint16_t numTags;
+	uint16_t lentags;
+	
 } row;
 
 

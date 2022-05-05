@@ -6,6 +6,7 @@ row *newRow(const char path[MAXPATH]){
 	memcpy(nr->path, path, MAXPATH);
 	memcpy(nr->tags, "\0", MAXTAGS);
 	nr->numTags = 0;
+	nr->lenTags = 0;
 
 	return nr;
 }
@@ -113,6 +114,7 @@ void insertTag(row *r, char *tag){
 	}
 	r->tags[tagnum] = '\0';
 	r->numTags = l;
+	r->lenTags = tagnum;
 }
 
 // Remove a tag from the tags array in the row r
@@ -153,4 +155,5 @@ void removeTag(row *r, char *tag){
 	}
 	r->tags[tagnum] = '\0';
 	r->numTags = l;
+	r->lenTags = tagnum;
 }
