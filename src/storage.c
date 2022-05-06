@@ -2,7 +2,6 @@
 
 
 row *newRow(const char path[MAXPATH]){
-	printf("len: %d\n", len(path));
 	row *nr = malloc(sizeof(row));
 	memcpy(nr->path, path, len(path));
 	nr->numTags = 0;
@@ -105,7 +104,6 @@ void insertTag(row *r, char *tag){
 				i = 0;
 				break;
 			case 0:
-				printf("'%s' == '%s'\n", arr[i-1], arr[i]);
 				// The tag already exists, no need to alter anything
 				free(arr);
 				return;
