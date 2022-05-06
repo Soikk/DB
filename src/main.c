@@ -6,19 +6,19 @@ int main(){
 	inputBuffer *in = newInputBuffer();
 
 
-	row r = {"C:/xd", "perro", 1, 5};
-	printf("%s %d %d\n", r.tags, r.numTags, r.lenTags);
+	row r = {"C:/xd", "", 0, 0};
+	printf("%s %d %d\n", r.tags, r.numTags, r.lenTags);7
 	insertTag(&r, "caca");
 	insertTag(&r, "mierda");
-	insertTag(&r, "perra");
+	insertTag(&r, "caca ");
 	insertTag(&r, "tu");
 	printf("%s %d %d\n", r.tags, r.numTags, r.lenTags);
 
 	printf("%d\n", strInTags(r.tags, r.lenTags, ";perro", 6, ';'));
 
-	row *r2 = newRow("test1test2test3testtesttesttesttesttettesttestestest");
+	row *r2 = newRow("asa");
 
-	while(0){
+	while(1){
 
 		prompt();
 		getInput(in);

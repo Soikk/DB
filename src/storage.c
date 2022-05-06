@@ -2,9 +2,9 @@
 
 
 row *newRow(const char path[MAXPATH]){
+	printf("len: %d\n", len(path));
 	row *nr = malloc(sizeof(row));
-	memcpy(nr->path, path, MAXPATH);
-	memcpy(nr->tags, "\0", MAXTAGS);
+	memcpy(nr->path, path, len(path));
 	nr->numTags = 0;
 	nr->lenTags = 0;
 
@@ -13,7 +13,7 @@ row *newRow(const char path[MAXPATH]){
 
 // Splits src into words based on a separator character (sep) and stores them in arr,
 // and the length in len. Inspired by https://github.com/joshdk/tag/blob/master/src/dsv.c's split
-static void split(const char *src, char sep, char ***arr, int *len){
+static void split(const char *src, char sep, char ***arr, uint16_t *len){
 	int slen = 0, ai = 0, wnum = 0, wlen = 0;
 
 	while(src[slen] != '\0'){
@@ -49,12 +49,17 @@ static void swapWords(char ***arr, int a, int b){
 	(*arr)[b] = tmp;
 }
 
-static char *normalizeTag(char *tag){
+static char *normalizeTag(char *tag, uint16_t *ln){
 	uint16_t l = len(tag);
 	char *ntag = calloc(l+1, sizeof(char));
 	for(int i = 0; i < l; ++i){
 		ntag[i] = tolower(tag[i]);
+		if(i == l-1 && tag[i] == ' '){
+			ntag[i] = '\0';
+			--l;
+		}
 	}
+	*ln = l;
 	return ntag;
 }
 
@@ -62,12 +67,17 @@ static char *normalizeTag(char *tag){
 // comparison with strnatcmp. We assume that when adding a tag all other
 // tags are already sorted. Nothing is done if the tag is already in the tags
 void insertTag(row *r, char *tag){
-	int l, ltag = len(tag);
+	uint16_t l, ltag;
+	tag = normalizeTag(tag, &ltag);
+
 	if(ltag == 0){
 		return;
 	}
-
-	tag = normalizeTag(tag);
+	if((r->lenTags+ltag) > MAXTAGS-1){
+		fprintf(stderr, "Can't insert tag '%s': too big (%d + %d > %d - 1) (insertTag)",
+			tag, r->lenTags, ltag, MAXTAGS);
+		exit(EXIT_FAILURE);
+	}
 
 	// Dump tags into array of strings and add tag
 	char **arr, **tmp;
@@ -95,6 +105,7 @@ void insertTag(row *r, char *tag){
 				i = 0;
 				break;
 			case 0:
+				printf("'%s' == '%s'\n", arr[i-1], arr[i]);
 				// The tag already exists, no need to alter anything
 				free(arr);
 				return;
@@ -121,12 +132,12 @@ void insertTag(row *r, char *tag){
 // Remove a tag from the tags array in the row r
 // Nothing is done if the tag isnt in the tags
 void removeTag(row *r, char *tag){
-	int l, ltag = len(tag);
+	uint16_t l, ltag;
+	tag = normalizeTag(tag, &ltag);
+
 	if(ltag == 0){
 		return;
 	}
-
-	tag = normalizeTag(tag);
 
 	// Dump tags into array of strings
 	char **arr;
