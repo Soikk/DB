@@ -3,8 +3,8 @@
 
 #include "db.h"
 
-#define MAXPATH 4096
-#define MAXTAGS 4096
+#define MAXPATH 4094
+#define MAXTAGS 4094
 
 
 // When intializing the struct, it is recommended
@@ -12,8 +12,8 @@
 typedef struct{
 	char path[MAXPATH];
 	char tags[MAXTAGS];
-	uint16_t numTags;
 	uint16_t lenTags;
+	uint16_t numTags;
 } row;
 
 
