@@ -15,6 +15,7 @@
 #include "parser.h"
 #include "storage.h"
 #include "str.h"
+#include "bm.h"
 
 
 #endif
