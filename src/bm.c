@@ -32,9 +32,9 @@ ssize_t BM(char *x, int m, char *y, int n){
 	while(j < n){
 		k = bmBc[y[j + m -1]];
 		while(k != 0){
-			j += k; k = bmBc[y[j + m -1]];
-			//j += k; k = bmBc[y[j + m -1]];
-			//j += k; k = bmBc[y[j + m -1]];
+			j += k; k = bmBc[y[j + m - 1]];
+			j += k; k = bmBc[y[j + m - 1]];
+			j += k; k = bmBc[y[j + m - 1]];
 		}
 		if(memcmp(x, y + j, m) == 0 && j < n)
 			return j;

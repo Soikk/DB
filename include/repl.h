@@ -3,6 +3,7 @@
 
 #include "db.h"
 
+
 typedef struct {
 	char *buffer;
 	ssize_t inputSize;

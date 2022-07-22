@@ -6,5 +6,4 @@
 
 ssize_t BM(char *x, int m, char *y, int n);
 
-
 #endif
