@@ -9,7 +9,7 @@ STORAGE
 		- For each "string" in its table, it has:
 			· 4 bytes (32 bits) that stores the string size (counting the trailing 0).
 			· However many bytes as size, for storing each of the caracters in the string, including the trailing 0.
-		-1 byte as an "end" that stores the 'E' ASCII character.
+		- 1 byte as an "end" that stores the 'E' ASCII character.
 	When loading an ltable, if the header doesn't match, it will print "Header is '(header)' not 'L'" to standard error.
 	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
 	Storing an ltable returns 0 upon completion.
