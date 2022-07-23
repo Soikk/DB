@@ -1,0 +1,92 @@
+OBSERVATIONS
+
+STORAGE
+	An ltable consists of its size and a "string" table (char**).
+	An ltable is initialized with a size, that can be 0. The table inside the ltable is NOT initalized.
+	An ltable is written to disk in the following format:
+		- 1 byte as a header that stores the 'L' ASCII character.
+		- 8 bytes (64 bits) that store the size of the table.
+		- For each "string" in its table, it has:
+			· 4 bytes (32 bits) that stores the string size (counting the trailing 0).
+			· However many bytes as size, for storing each of the caracters in the string, including the trailing 0.
+		-1 byte as an "end" that stores the 'E' ASCII character.
+	When loading an ltable, if the header doesn't match, it will print "Header is '(header)' not 'L'" to standard error.
+	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+	Storing an ltable returns 0 upon completion.
+	When working with "strings", all "strings" are normalized with normalizeStrLimit, lowercasing it, removing trailing spaces and adding a limit of MAXPATH-1 characters plus the trailing 0.
+	Adding a "string" to an ltable consists of:
+		- Creating a new table of size size+1.
+		- Storing all existing "strings" in said table.
+		- Appending the new "string" at the end of the table.
+		- Reallocating space in the ltable's table.
+		- Storing all "strings" in the new table in the ltable's table.
+		- Increasing the ltable's size by 1.
+	If the "string" is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
+	Searching for a "string" returns the index [0 ... size-1] of said "string" in the table, or -1 if its not found.
+
+	An htable consists of its size and an unsigned 64 bit integer table.
+	An htable is initialized with a size, that can be 0. The table inside the htable IS initialized.
+	An htable is written to disk in the following format:
+		- 1 byte as a header that stores the 'H' ASCII character.
+		- 8 bytes (64 bits) that store the size of the table.
+		- 8 bytes (64 bits) for each element in its table.
+		- 1 byte as a "end" that stores the 'E' ASCII character.
+	When loading an htable, if the header doesn't match, it will print "Header is '(header)' not 'H'" to standard error.
+	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+	Storing an htable returns 0 upon completion.
+	Adding a 64 bit unsigned integer to an htable consists of:
+		- Creating a new table of size size+1.
+		- Storing all existing 64 bit unsigned integers in said table.
+		- Appending the new 64 bit unsigned integer at the end of the table.
+		- Reallocating space in the htable's table.
+		- Storing all 64 bit unsigned integers in the new table in the htable's table.
+		- Increasing the htable's size by 1.
+	If the 64 bit unsigned integer is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
+	Searching for a 64 bit unsigned integer returns the index [0 ... size-1] of said 64 bit unsigned integer in the table, or -1 if its not found.
+
+	An mtable consists of its size and a struct relation table.
+		A struct relation consists of two 64 bit numbers. The first one is the file identifier and the second one the tag identifier.
+	An mtable is initialized with a size, that can be 0. The table inside the mtable is NOT initialized.
+	An mtable is written to disk in the following format:
+		- 1 byte as a header that stores the 'M' ASCII character.
+		- 8 bytes (64 bits) that store the size of the table.
+		- For each struct relation in its table, it has:
+			· 8 bytes (64 bits) that store the file identifier of the relation.
+			· 8 bytes (64 bits) that store the tag identifier of the relation.
+		- 1 byte as a "end" that stores the 'E' ASCII character.
+	When loading an mtable, if the header doesn't match, it will print "Header is '(header)' not 'M'" to standard error.
+	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+	Storing an mtable returns 0 upon completion.
+	Adding a relation to an mtable consists of:
+		- Creating a new table of size size+1.
+		- Storing all existing relations in said table.
+		- Appending the new relation at the end of the table.
+		- Reallocating space in the mtable's table.
+		- Storing all relations in the new table in the mtable's table.
+		- Increasing the mtable's size by 1.
+	If the relation is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
+	Searching for a relation returns the index [0 ... size-1] of said relation in the table, or -1 if its not found.
+
+
+DATABASE
+
+	A database consists of a 32 character (including trailing 0) name, and:
+		- 2 lookup tables (ltable) for storing the unique file and tag names.
+		- 2 hash tables (htable) for storing the hashes of the names in the ltables.
+		- 1 mapping tables (mtable) for storing the mappings of the tags to the files.
+	The lookup tables serve the purpose of looking up the names of the files and tags when needed.
+	The hash tables serve the purpose of providing faster search times when searching for a file or tag.
+	Each respective lookup and hash tables (lfiles and hfiles, ltags and htags) share indexes.
+	The mapping table serves the purpose of storing the relation between different files and tags as the pairing of their indexes.
+	A databbase is written to disk in the following format:
+		- 2 bytes as a header that store the 'DB' ASCII characters.
+		- 32 bytes that store the name of the database.
+		- The lfiles ltable.
+		- The ltags ltable.
+		- The hfiles htable.
+		- The htags htable.
+		- The map mtable.
+		- 3 bytes as "end" that store the 'END'"' ASCII characters.
+	When loading a database, if the header doesn't match, it will print "Header is '(header)' not 'DB'" to standard error.
+	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'END'" to standard error. 
+	Storing a database returns 0 upon completion.

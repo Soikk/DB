@@ -13,7 +13,7 @@ ltable *loadLtable(FILE *fp){
 	char header;
 	fread(&header, sizeof(char), 1, fp);
 	if(header != 'L'){
-		printf("header is %c not L\n", header);
+		fprintf(stderr, "Header is '%c' not 'L'\n", header);
 	}
 	uint64_t size;
 	fread(&size, sizeof(uint64_t), 1, fp);
@@ -27,7 +27,7 @@ ltable *loadLtable(FILE *fp){
 	char end;
 	fread(&end, sizeof(char), 1, fp);
 	if(end != 'E'){
-		printf("end is %c not E\n", end);
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
 	}
 	return lt;
 }
@@ -96,7 +96,7 @@ htable *loadHtable(FILE *fp){
 	char header;
 	fread(&header, sizeof(char), 1, fp);
 	if(header != 'H'){
-		printf("header is %c not H\n", header);
+		fprintf(stderr, "Header is '%c' not 'H'\n", header);
 	}
 	uint64_t size;
 	fread(&size, sizeof(uint64_t), 1, fp);
@@ -107,7 +107,7 @@ htable *loadHtable(FILE *fp){
 	char end;
 	fread(&end, sizeof(char), 1, fp);
 	if(end != 'E'){
-		printf("end is %c not E\n", end);
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
 	}
 	return ht;
 }
@@ -163,7 +163,7 @@ mtable *loadMtable(FILE *fp){
 	char header;
 	fread(&header, sizeof(char), 1, fp);
 	if(header != 'M'){
-		printf("header is %c not M\n", header);
+		fprintf(stderr, "Header is '%c' not 'M'\n", header);
 	}
 	uint64_t size;
 	fread(&size, sizeof(uint64_t), 1, fp);
@@ -175,7 +175,7 @@ mtable *loadMtable(FILE *fp){
 	char end;
 	fread(&end, sizeof(char), 1, fp);
 	if(end != 'E'){
-		printf("end is %c not E\n", end);
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
 	}
 	return mt;
 }

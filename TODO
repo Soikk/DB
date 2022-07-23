@@ -1,12 +1,14 @@
-Try different hashing functions (current: crc64), e.g murmur
-Change DB model from struct row
-	typedef struct{
-		char path[MAXPATH];
-		char tags[MAXTAGS];
-		uint16_t lenTags;
-		uint16_t numTags;
-	} row;
-to tables of ids
-	images[]	tags[]	images:tags[]
+----------------------------------------------------------------
+DONE	Change DB model from struct row
+			typedef struct{
+				char path[MAXPATH];
+				char tags[MAXTAGS];
+				uint16_t lenTags;
+				uint16_t numTags;
+			} row;
+		to tables of ids
+			images[]	tags[]	images:tags[]
+
+DONE	Try different hashing functions (current: crc64), e.g murmur
 
 DONE	Try to improve 'sameStr' by maybe not having to check s2[i2]

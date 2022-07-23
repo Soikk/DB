@@ -17,7 +17,7 @@ database *loadDatabase(const char* path){
 	char *header = calloc(2, sizeof(char));
 	fread(header, sizeof(char), 2, fp);
 	if(!sameStr(header, "DB")){
-		printf("header is %c%c and not DB\n", header[0], header[1]);
+		fprintf(stderr, "Header is '%s' not 'DB'\n", header);
 	}
 	char name[32];
 	fread(&name, sizeof(char), 32, fp);
@@ -30,7 +30,7 @@ database *loadDatabase(const char* path){
 	char end[4];
 	fread(&end, sizeof(char), 3, fp);
 	if(!sameStr(end, "END")){
-		printf("end is %s and not END\n", end);
+		fprintf(stderr, "End is '%s' not 'END'\n", end);
 	}
 	fclose(fp);
 	return db;
@@ -53,6 +53,7 @@ int storeDatabase(database *db, const char *path){
 	fwrite(end, sizeof(char), 3, fp);
 	
 	fclose(fp);
+	return 0;
 }
 
 static int addRelation(database *db, relation r){
