@@ -1,3 +1,5 @@
+TODO	Get rid of old functionalities (strnatcmp, BM)
+
 ----------------------------------------------------------------
 DONE	Change DB model from struct row
 			typedef struct{

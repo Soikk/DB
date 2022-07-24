@@ -73,18 +73,22 @@ DATABASE
 	A database consists of a 32 character (including trailing 0) name, and:
 		- 2 lookup tables (ltable) for storing the unique file and tag names.
 		- 2 hash tables (htable) for storing the hashes of the names in the ltables.
+		- 2 hash tables (htable) for storing the count of the files & tags in the mapping table (how many files one tags has and vice versa).
 		- 1 mapping tables (mtable) for storing the mappings of the tags to the files.
 	The lookup tables serve the purpose of looking up the names of the files and tags when needed.
-	The hash tables serve the purpose of providing faster search times when searching for a file or tag.
-	Each respective lookup and hash tables (lfiles and hfiles, ltags and htags) share indexes.
+	The first 2 hash tables serve the purpose of providing faster search times when searching for a file or tag.
+	The remaining 2 hash tables (fcount and tcount) serve the purpose of storing the count of how many of each file and tag is in the mapping table.
+	Each respective lookup and hash tables (lfiles, hfiles and fcount, ltags, htags and hcount) share indexes.
 	The mapping table serves the purpose of storing the relation between different files and tags as the pairing of their indexes.
-	A databbase is written to disk in the following format:
+	A database is written to disk in the following format:
 		- 2 bytes as a header that store the 'DB' ASCII characters.
 		- 32 bytes that store the name of the database.
 		- The lfiles ltable.
 		- The ltags ltable.
 		- The hfiles htable.
 		- The htags htable.
+		- The fcount htable;
+		- The tcount htable;
 		- The map mtable.
 		- 3 bytes as "end" that store the 'END'"' ASCII characters.
 	When loading a database, if the header doesn't match, it will print "Header is '(header)' not 'DB'" to standard error.

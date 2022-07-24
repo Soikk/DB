@@ -14,5 +14,4 @@ char *normalizeStrLimit(const char *str, uint32_t *l, uint32_t limit);
 
 ssize_t strInTags(const char *tags, int n, const char *ndl, int m, char sep); 
 
-
 #endif
