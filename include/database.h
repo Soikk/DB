@@ -27,9 +27,9 @@ int addFileTag(database *db, char *file, char *tag);
 
 int addFileTags(database *db, char *file, int ntags, ...);
 
-int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl);
-
 int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl);
+
+int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl);
 
 void printDatabase(database *db);
 

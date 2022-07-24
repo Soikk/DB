@@ -130,36 +130,6 @@ int addFileTags(database *db, char *file, int ntags, ...){
 	return 0;
 }
 
-// Stores in r a list with the indexes of the first n files that have this tag
-// If n is 0 or lower, it returns all of them. Stores in rl the length of r
-int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl){
-	uint32_t l;
-	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
-	uint64_t h = crc64(0, tag, l);
-	uint64_t ti = htableSearch(db->htags, h);
-	if(ti == -1){
-		return -1;
-	}
-	
-	*rl = 0;
-	for(uint64_t i = 0; i < db->map->size; ++i){
-		if(n < 1 || *rl < n){
-			if(db->map->table[i].tag == ti){
-				++(*rl);
-			}
-		}
-	}
-	*r = malloc((*rl)*sizeof(uint64_t));
-	uint64_t c = 0;
-	for(uint64_t i = 0; i < db->map->size && c < *rl; ++i){
-		if(db->map->table[i].tag == ti){
-			(*r)[c++] = db->map->table[i].file;
-		}
-	}
-	
-	return 0;
-}
-
 // Stores in r a list with the indexes of the first n tags that this file has
 // If n is 0 or lower, it returns all of them. Stores in rl the length of r
 int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl){
@@ -184,6 +154,36 @@ int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl)
 	for(uint64_t i = 0; i < db->map->size && c < *rl; ++i){
 		if(db->map->table[i].file == fi){
 			(*r)[c++] = db->map->table[i].tag;
+		}
+	}
+	
+	return 0;
+}
+
+// Stores in r a list with the indexes of the first n files that have this tag
+// If n is 0 or lower, it returns all of them. Stores in rl the length of r
+int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl){
+	uint32_t l;
+	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
+	uint64_t h = crc64(0, tag, l);
+	uint64_t ti = htableSearch(db->htags, h);
+	if(ti == -1){
+		return -1;
+	}
+	
+	*rl = 0;
+	for(uint64_t i = 0; i < db->map->size; ++i){
+		if(n < 1 || *rl < n){
+			if(db->map->table[i].tag == ti){
+				++(*rl);
+			}
+		}
+	}
+	*r = malloc((*rl)*sizeof(uint64_t));
+	uint64_t c = 0;
+	for(uint64_t i = 0; i < db->map->size && c < *rl; ++i){
+		if(db->map->table[i].tag == ti){
+			(*r)[c++] = db->map->table[i].file;
 		}
 	}
 	

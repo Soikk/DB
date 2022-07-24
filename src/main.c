@@ -9,9 +9,9 @@ int main(){
 	
 	
 	addFileTag(db, "vaca.png", "naturaleza");	
-	addFileTags(db, "donald-tromp.jpg", 3, "based", "hitler", "very cool");
+	addFileTags(db, "donald-tromp.jpg", 3, "based", "blonde", "very cool");
 	addFileTag(db, "vaca.png", "lovely");
-	addFileTags(db, "vaca.png", 3, "nature", "kami", "very cool");
+	addFileTags(db, "vaca.png", 3, "nature", "animal", "very cool");
 	
 	storeDatabase(db, "db.db");
 
