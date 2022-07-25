@@ -9,7 +9,7 @@ int main(){
 	
 	
 	addFileTag(db, "vaca.png", "naturaleza");	
-	addFileTags(db, "donald-tromp.jpg", 3, "based", "blonde", "very cool");
+	addFileTags(db, "terry-davis.jpg", 3, "holyC", "programmer", "very cool");
 	addFileTag(db, "vaca.png", "lovely");
 	addFileTags(db, "vaca.png", 3, "nature", "animal", "very cool");
 	
@@ -20,9 +20,9 @@ int main(){
 	debugDatabase(db);
 	
 	uint64_t *l, i;
-	searchFile(db, "donald-tromp.jpg", 0, &l, &i);
+	searchFile(db, "terry-davis.jpg", 0, &l, &i);
 	
-	printf("Tags with tag 'donald-tromp.jpg':\n");
+	printf("Tags with file 'terry-davis.jpg':\n");
 	for(uint64_t j = 0; j < i; ++j){
 		printf("\t%s\n", db->ltags->table[l[j]]);
 	

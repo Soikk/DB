@@ -1,3 +1,7 @@
+TODO	Consider refactoring tables to B-Trees (better performance?)
+
+TODO	Add remove* functions, restructure tables functions
+
 TODO	Get rid of old functionalities (strnatcmp, BM)
 
 ----------------------------------------------------------------
