@@ -101,6 +101,8 @@ int htableAdd(htable *ht, uint64_t h);
 
 uint64_t htableSearch(htable *ht, uint64_t h);
 
+int htableDelete(htable *ht, uint64_t h);
+
 // MTABLE
 
 mtable *newMtable(uint64_t size);

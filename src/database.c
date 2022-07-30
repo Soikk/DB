@@ -222,3 +222,9 @@ void debugDatabase(database *db){
 	}
 	printf("\n");
 }
+
+void reOrderDatabase(database *db){
+
+	
+
+}

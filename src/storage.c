@@ -142,6 +142,7 @@ int htableAdd(htable *ht, uint64_t h){
 	return 0;
 }
 
+// We assume the table isnt ordered as of right now
 uint64_t htableSearch(htable *ht, uint64_t h){
 	for(uint64_t i = 0; i < ht->size; ++i){
 		if(h == ht->table[i]){
@@ -149,6 +150,18 @@ uint64_t htableSearch(htable *ht, uint64_t h){
 		}
 	}
 	return -1;
+}
+
+int htableDelete(htable *ht, uint64_t h){
+	uint64_t i = htableSearch(ht, h);
+	if(i == -1){
+		return -1;
+	}
+	ht->size--;
+	for(uint64_t j = i; j < ht->size-1; ++j){
+		ht->table[j] = ht->table[j+1];
+	}
+	return 0;
 }
 
 mtable *newMtable(uint64_t size){

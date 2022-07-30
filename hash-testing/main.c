@@ -344,11 +344,13 @@ int main(){
     while (fgets(line, sizeof(line), f)) {
         uint16_t l;
         char *nline = normalizeStr(line, &l);
-        uint64_t hash = crc64(0, nline, l);
-        if(isInArr(arr, hash)){
+        uint64_t hash = crc64(SEED, nline, l);
+        //uint32_t hash = xcrc32(nline, l, SEED);
+        //uint32_t hash = murmurhash(nline, l, SEED);
+        /*if(isInArr(arr, hash)){
         	++collisions;
         }
-        arr[i] = hash;
+        arr[i] = hash;*/
         //printf("%s\t%08x\n", nline, hash);
         ++i;
     }
