@@ -1,3 +1,5 @@
+TODO	Use inttypes.h add, divide and multiply functions
+
 TODO	Consider refactoring tables to B-Trees (better performance?)
 
 TODO	Add remove* functions, restructure tables functions

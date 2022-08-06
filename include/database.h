@@ -7,8 +7,8 @@
 typedef struct database{
 	char name[32];
 	ltable *lfiles, *ltags;
-	htable *hfiles, *htags;
-	htable *fcount, *tcount;
+	ctable *cfiles, *ctags;
+	tree hfiles, htags;
 	mtable *map;
 } database;
 
@@ -32,6 +32,8 @@ int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl)
 int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl);
 
 void printDatabase(database *db);
+
+void debugAVLtree(node *n);
 
 void debugDatabase(database *db);
 

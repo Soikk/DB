@@ -67,6 +67,16 @@ STORAGE
 	If the relation is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
 	Searching for a relation returns the index [0 ... size-1] of said relation in the table, or -1 if its not found.
 
+	
+	AVL trees (tree, or node*) are self-balancing binary search trees used for storing the hashes and the index they store.
+	Random lookup, insertion and deletion is O(log n), which makes them very well suited for a database. I have chosen AVL trees over B-trees for simplicity.
+	The height of a node is 1 + the maximum of the height of its left and right children.
+	The balance of a node is the height of its left child minus the height of its right child.
+	The rotation, insert and delete functions are explained in
+		https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
+		https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+		
+	
 
 DATABASE
 

@@ -1,49 +1,14 @@
 #include "db.h"
 
 
+// LTABLE
+
 ltable *newLtable(uint64_t size){
 	ltable *lt = malloc(sizeof(ltable));
 	size = (((uint64_t)size) < 0) ? 0 : size;
 	lt->size = size;
 	lt->table = malloc(size*sizeof(char*));
 	return lt;
-}
-
-ltable *loadLtable(FILE *fp){
-	char header;
-	fread(&header, sizeof(char), 1, fp);
-	if(header != 'L'){
-		fprintf(stderr, "Header is '%c' not 'L'\n", header);
-	}
-	uint64_t size;
-	fread(&size, sizeof(uint64_t), 1, fp);
-	ltable *lt = newLtable(size);
-	for(uint64_t i = 0; i < lt->size; ++i){
-		uint32_t sl;
-		fread(&sl, sizeof(uint32_t), 1, fp);
-		lt->table[i] = malloc(sl*sizeof(char));
-		fread(lt->table[i], sizeof(char), sl, fp);
-	}
-	char end;
-	fread(&end, sizeof(char), 1, fp);
-	if(end != 'E'){
-		fprintf(stderr, "End is '%c' not 'E'\n", end);
-	}
-	return lt;
-}
-
-int storeLtable(const ltable *lt, FILE *fp){
-	char header = 'L';
-	fwrite(&header, sizeof(char), 1, fp);
-	fwrite(&lt->size, sizeof(uint64_t), 1, fp);
-	for(uint64_t i = 0; i < lt->size; ++i){
-		uint32_t l = len(lt->table[i]) + 1;
-		fwrite(&l, sizeof(uint32_t), 1, fp);
-		fwrite(lt->table[i], sizeof(char), l, fp);
-	}
-	char end = 'E';
-	fwrite(&end, sizeof(char), 1, fp);
-	return 0;
 }
 
 int ltableAdd(ltable *lt, char *str){
@@ -84,85 +49,125 @@ uint64_t ltableSearch(ltable *lt, char *str){
 	return -1;
 }
 
-htable *newHtable(uint64_t size){
-	htable *ht = malloc(sizeof(htable));
-	size = (((uint64_t)size) < 0) ? 0 : size;
-	ht->size = size;
-	ht->table = malloc(size*sizeof(uint64_t));
-	return ht;
-}
-
-htable *loadHtable(FILE *fp){
-	char header;
-	fread(&header, sizeof(char), 1, fp);
-	if(header != 'H'){
-		fprintf(stderr, "Header is '%c' not 'H'\n", header);
-	}
-	uint64_t size;
-	fread(&size, sizeof(uint64_t), 1, fp);
-	htable *ht = newHtable(size);
-	for(uint64_t i = 0; i < ht->size; ++i){
-		fread(&ht->table[i], sizeof(uint64_t), 1, fp);
-	}
-	char end;
-	fread(&end, sizeof(char), 1, fp);
-	if(end != 'E'){
-		fprintf(stderr, "End is '%c' not 'E'\n", end);
-	}
-	return ht;
-}
-
-int storeHtable(const htable *ht, FILE *fp){
-	char header = 'H';
+int storeLtable(const ltable *lt, FILE *fp){
+	char header = 'L';
 	fwrite(&header, sizeof(char), 1, fp);
-	fwrite(&ht->size, sizeof(uint64_t), 1, fp);
-	for(uint64_t i = 0; i < ht->size; ++i){
-		fwrite(&ht->table[i], sizeof(uint64_t), 1, fp);
+	fwrite(&lt->size, sizeof(uint64_t), 1, fp);
+	for(uint64_t i = 0; i < lt->size; ++i){
+		uint32_t l = len(lt->table[i]) + 1;
+		fwrite(&l, sizeof(uint32_t), 1, fp);
+		fwrite(lt->table[i], sizeof(char), l, fp);
 	}
 	char end = 'E';
 	fwrite(&end, sizeof(char), 1, fp);
 	return 0;
 }
 
-int htableAdd(htable *ht, uint64_t h){
-	uint64_t *nht = malloc((ht->size+1)*sizeof(uint64_t));
-	for(uint64_t i = 0; i < ht->size; ++i){
-		if(h == ht->table[i]){
+ltable *loadLtable(FILE *fp){
+	char header;
+	fread(&header, sizeof(char), 1, fp);
+	if(header != 'L'){
+		fprintf(stderr, "Header is '%c' not 'L'\n", header);
+	}
+	uint64_t size;
+	fread(&size, sizeof(uint64_t), 1, fp);
+	ltable *lt = newLtable(size);
+	for(uint64_t i = 0; i < lt->size; ++i){
+		uint32_t sl;
+		fread(&sl, sizeof(uint32_t), 1, fp);
+		lt->table[i] = malloc(sl*sizeof(char));
+		fread(lt->table[i], sizeof(char), sl, fp);
+	}
+	char end;
+	fread(&end, sizeof(char), 1, fp);
+	if(end != 'E'){
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
+	}
+	return lt;
+}
+
+// CTABLE
+
+ctable *newCtable(uint64_t size){
+	ctable *ct = malloc(sizeof(ctable));
+	size = (((uint64_t)size) < 0) ? 0 : size;
+	ct->size = size;
+	ct->table = malloc(size*sizeof(uint64_t));
+	return ct;
+}
+
+int ctableAdd(ctable *ct, uint64_t n){
+	uint64_t *nct = malloc((ct->size+1)*sizeof(uint64_t));
+	for(uint64_t i = 0; i < ct->size; ++i){
+		if(n == ct->table[i]){
 			return -1;
 		}
-		nht[i] = ht->table[i];
+		nct[i] = ct->table[i];
 	}
-	nht[ht->size] = h;
+	nct[ct->size] = n;
 	
-	ht->size++;
-	ht->table = malloc(ht->size*sizeof(uint64_t));
-	for(uint64_t i = 0; i < ht->size; ++i){
-		ht->table[i] = nht[i];
+	ct->size++;
+	ct->table = malloc(ct->size*sizeof(uint64_t));
+	for(uint64_t i = 0; i < ct->size; ++i){
+		ct->table[i] = nct[i];
 	}
 	return 0;
 }
 
-// We assume the table isnt ordered as of right now
-uint64_t htableSearch(htable *ht, uint64_t h){
-	for(uint64_t i = 0; i < ht->size; ++i){
-		if(h == ht->table[i]){
+int ctableDelete(ctable *ct, uint64_t n){
+	uint64_t i = ctableSearch(ct, n);
+	if(i == -1){
+		return -1;
+	}
+	ct->size--;
+	for(uint64_t j = i; j < ct->size-1; ++j){
+		ct->table[j] = ct->table[j+1];
+	}
+	return 0;
+}
+
+uint64_t ctableSearch(ctable *ct, uint64_t n){
+	for(uint64_t i = 0; i < ct->size; ++i){
+		if(n == ct->table[i]){
 			return i;
 		}
 	}
 	return -1;
 }
 
-int htableDelete(htable *ht, uint64_t h){
-	uint64_t i = htableSearch(ht, h);
-	if(i == -1){
-		return -1;
+int storeCtable(const ctable *ct, FILE *fp){
+	char header = 'C';
+	fwrite(&header, sizeof(char), 1, fp);
+	fwrite(&ct->size, sizeof(uint64_t), 1, fp);
+	for(uint64_t i = 0; i < ct->size; ++i){
+		fwrite(&ct->table[i], sizeof(uint64_t), 1, fp);
 	}
-	ht->size--;
-	for(uint64_t j = i; j < ht->size-1; ++j){
-		ht->table[j] = ht->table[j+1];
-	}
+	char end = 'E';
+	fwrite(&end, sizeof(char), 1, fp);
 	return 0;
 }
+
+ctable *loadCtable(FILE *fp){
+	char header;
+	fread(&header, sizeof(char), 1, fp);
+	if(header != 'C'){
+		fprintf(stderr, "Header is '%c' not 'C'\n", header);
+	}
+	uint64_t size;
+	fread(&size, sizeof(uint64_t), 1, fp);
+	ctable *ct = newCtable(size);
+	for(uint64_t i = 0; i < ct->size; ++i){
+		fread(&ct->table[i], sizeof(uint64_t), 1, fp);
+	}
+	char end;
+	fread(&end, sizeof(char), 1, fp);
+	if(end != 'E'){
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
+	}
+	return ct;
+}
+
+// MTABLE
 
 mtable *newMtable(uint64_t size){
 	mtable *mt = malloc(sizeof(mtable));
@@ -170,6 +175,63 @@ mtable *newMtable(uint64_t size){
 	mt->size = size;
 	mt->table = malloc(size*sizeof(relation));
 	return mt;
+}
+
+int mtableAdd(mtable *mt, relation r){
+	relation *nmt = malloc((mt->size+1)*sizeof(relation));
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
+			return -1;
+		}
+		nmt[i] = mt->table[i];
+	}
+	nmt[mt->size] = r;
+	mt->size++;
+	mt->table = malloc(mt->size*sizeof(relation));
+	for(uint64_t i = 0; i < mt->size; ++i){
+		mt->table[i] = nmt[i];
+	}
+	return 0;
+}
+
+uint64_t mtableSearch(mtable *mt, relation r){
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
+			return i;
+		}
+	}
+	return -1;
+}
+
+uint64_t mtableSearchFile(mtable *mt, uint64_t file){
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(file == mt->table[i].file){
+			return i;
+		}
+	}
+	return -1;
+}
+
+uint64_t mtableSearchTag(mtable *mt, uint64_t tag){
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(tag == mt->table[i].tag){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int storeMtable(const mtable *mt, FILE *fp){
+	char header = 'M';
+	fwrite(&header, sizeof(char), 1, fp);
+	fwrite(&mt->size, sizeof(uint64_t), 1, fp);
+	for(uint64_t i = 0; i < mt->size; ++i){
+		fwrite(&mt->table[i].file, sizeof(uint64_t), 1, fp);
+		fwrite(&mt->table[i].tag, sizeof(uint64_t), 1, fp);
+	}
+	char end = 'E';
+	fwrite(&end, sizeof(char), 1, fp);
+	return 0;
 }
 
 mtable *loadMtable(FILE *fp){
@@ -193,48 +255,221 @@ mtable *loadMtable(FILE *fp){
 	return mt;
 }
 
-int storeMtable(const mtable *mt, FILE *fp){
-	char header = 'M';
+// AVL TREE
+
+static inline uint64_t max(uint64_t a, uint64_t b){
+	return ((a > b) ? a : b);
+}
+
+uint64_t height(node *n){
+	if(n != NULL){
+		return 1 + max(height(n->left), height(n->right));
+	}
+	return 0;
+}
+
+static int64_t balance(node *n){
+	if(n != NULL){
+		return height(n->left) - height(n->right);
+	}
+	return 0;
+}
+
+static node *lowestNode(node *n){
+	node *t = n;
+	while(t->left != NULL){
+		t = t->left;
+	}
+	return t;
+}
+
+node *newNode(uint64_t h, uint64_t i){
+	node *n = malloc(sizeof(node));
+	n->h = h;
+	n->i = i;
+	n->left = NULL;
+	n->right = NULL;
+	return n;
+}
+
+static node *rotateNodeRight(node *r){
+	node *nr = r->left;
+	node *nc = nr->right;
+
+	r->left = nc;
+	nr->right = r;
+	return nr;
+}
+
+static node *rotateNodeLeft(node *r){
+	node *nr = r->right;
+	node *nc = nr->left;
+
+	r->right = nc;
+	nr->left = r;
+	return nr;
+}
+
+node *insertNode(node *r, uint64_t h, uint64_t i){
+	if(r == NULL){
+		return newNode(h, i);
+	}else if(r->h > h){
+		r->left = insertNode(r->left, h, i);
+	}else if(r->h < h){
+		r->right = insertNode(r->right, h, i);
+	}else{
+		return r;
+	}
+
+	int64_t b = balance(r);
+	if(b > 1 && h < r->left->h){	// Left left
+		return rotateNodeRight(r);
+	}
+	if(b < -1 && h > r->right->h){	// Right right
+		return rotateNodeLeft(r);
+	}
+	if(b > 1 && h > r->left->h){	// Left right
+		r->left = rotateNodeLeft(r->left);
+		return rotateNodeRight(r);
+	}
+	if(b < -1 && h < r->right->h){	// Right left
+		r->right = rotateNodeRight(r->right);
+		return rotateNodeLeft(r);
+	}
+	return r;
+}
+
+node *deleteNode(node *r, uint64_t h){
+	if(r == NULL){
+		return r;
+	}else if(r->h > h){
+		r->left = deleteNode(r->left, h);
+	}else if(r->h < h){
+		r->right = deleteNode(r->right, h);
+	}else{
+		if(r->left == NULL || r->right == NULL){
+			node *t = (r->left) ? r->left : r->right;
+			if(t == NULL){
+				t = r;
+				r = NULL;
+			}else{
+				*r = *t;
+			}
+			free(t);
+		}else{
+			node *t = lowestNode(r->right);
+			r->h = t->h;
+			r->i = t->i;
+			r->right = deleteNode(r->right, t->h);
+		}
+	}
+	if(r == NULL){
+		return r;
+	}
+	
+	uint64_t b = balance(r), bl = balance(r->left), br = balance(r->right);
+	if(b > 1 && bl >= 0){	// Left left
+		return rotateNodeRight(r);
+	}
+	if(b < -1 && br <= 0){	// Right right
+		return rotateNodeLeft(r);
+	}
+	if(b > 1 && bl < 0){	// Left right
+		r->left = rotateNodeLeft(r->left);
+		return rotateNodeRight(r);
+	}
+	if(b < -1 && br > 0){	// Right left
+		r->right = rotateNodeRight(r->right);
+		return rotateNodeLeft(r);
+	}
+	return r;
+}
+
+// Searches for h, returns i
+uint64_t nodeSearch(node *n, uint64_t h){
+	if(n == NULL){
+		return -1;
+	}else if(h == n->h){
+		return n->i;
+	}else if(h < n->h){
+		return nodeSearch(n->left, h);
+	}else if(h > n->h){
+		return nodeSearch(n->right, h);
+	}
+}
+
+static void nodesToArray(node *n, uint64_t *array, uint64_t i){
+	if(n == NULL){
+		return;
+	}
+	array[i+0] = n->h;
+	array[i+1] = n->i;
+	nodesToArray(n->left, array, (2*i + 1)*2);
+	nodesToArray(n->right, array, (2*i + 2)*2);
+}
+
+static uint64_t *treeToArray(tree root, uint64_t *maxNodes){
+	uint64_t treeHeight = height(root);
+	*maxNodes = (1<<treeHeight) - 1;
+	uint64_t *treeArray = malloc((2*(*maxNodes))*sizeof(uint64_t)); // One space for h, another for i
+	for(uint64_t i = 0; i < *maxNodes; ++i){
+		uint64_t ai = (i<<1);
+		// Lets hope we dont have an entry in the database where both the hash and the index are 18446744073709551615
+		treeArray[ai+0] = UINTMAX_MAX;
+		treeArray[ai+1] = UINTMAX_MAX;
+	}
+	nodesToArray(root, treeArray, 0);
+	return treeArray;
+}
+
+int storeAVLTree(tree root, FILE *fp){
+	char header = 'T';
 	fwrite(&header, sizeof(char), 1, fp);
-	fwrite(&mt->size, sizeof(uint64_t), 1, fp);
-	for(uint64_t i = 0; i < mt->size; ++i){
-		fwrite(&mt->table[i].file, sizeof(uint64_t), 1, fp);
-		fwrite(&mt->table[i].tag, sizeof(uint64_t), 1, fp);
+	uint64_t maxNodes;
+	uint64_t *array = treeToArray(root, &maxNodes);
+	fwrite(&maxNodes, sizeof(uint64_t), 1, fp);
+	for(uint64_t i = 0; i < maxNodes; ++i){
+		uint64_t ai = (i<<1);
+		fwrite(&array[ai+0], sizeof(uint64_t), 1, fp);	// Writing h
+		fwrite(&array[ai+1], sizeof(uint64_t), 1, fp);	// Writing i
 	}
 	char end = 'E';
 	fwrite(&end, sizeof(char), 1, fp);
 	return 0;
 }
 
-int mtableAdd(mtable *mt, relation r){
-	relation *nmt = malloc((mt->size+1)*sizeof(relation));
-	for(uint64_t i = 0; i < mt->size; ++i){
-		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
-			return -1;
-		}
-		nmt[i] = mt->table[i];
+static node *arrayToNodes(uint64_t *array, uint64_t i, uint64_t maxNodes){
+	if(i >= maxNodes*2){
+		return NULL;
 	}
-	nmt[mt->size] = r;
-	
-	mt->size++;
-	mt->table = malloc(mt->size*sizeof(relation));
-	for(uint64_t i = 0; i < mt->size; ++i){
-		mt->table[i] = nmt[i];
-	}
-	return 0;
+	node *n = newNode(array[i+0], array[i+1]);
+	n->left = arrayToNodes(array, (2*i + 1)*2, maxNodes);
+	n->right = arrayToNodes(array, (2*i + 2)*2, maxNodes);
+	return n;
 }
 
-uint64_t mtableSearch(mtable *mt, relation r){
-	for(uint64_t i = 0; i < mt->size; ++i){
-		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
-			return i;
-		}
+tree loadAVLTree(FILE *fp){
+	char header;
+	fread(&header, sizeof(char), 1, fp);
+	if(header != 'T'){
+		fprintf(stderr, "Header is '%c' not 'T'\n", header);
 	}
-	return -1;
+	uint64_t maxNodes;
+	fread(&maxNodes, sizeof(uint64_t), 1, fp);
+	uint64_t *array = malloc((2*maxNodes)*sizeof(uint64_t));
+	for(uint64_t i = 0; i < maxNodes; ++i){
+		uint64_t ai = (i<<1);
+		fread(&array[ai+0], sizeof(uint64_t), 1, fp);	// Reading h
+		fread(&array[ai+1], sizeof(uint64_t), 1, fp);	// Reading i
+	}
+	tree root = arrayToNodes(array, 0, maxNodes);
+	char end;
+	fread(&end, sizeof(char), 1, fp);
+	if(end != 'E'){
+		fprintf(stderr, "End is '%c' not 'E'\n", end);
+	}
+	return root;
 }
-
-
-
 
 /*
 // TODO: remove old impl

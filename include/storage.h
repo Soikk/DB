@@ -60,11 +60,11 @@ typedef struct lookupTable{
 	char **table; // They cant be longer than MAXPATH
 } ltable;
 
-// Stores the hashes of the filepaths/tags (for easier lookup)
-typedef struct hashTable{
+// Stores a number (used as the count for files and tags in the mapping table)
+typedef struct countTable{
 	uint64_t size;
 	uint64_t *table;
-} htable;
+} ctable;
 
 typedef struct relation{
 	uint64_t file;
@@ -77,42 +77,73 @@ typedef struct mappingTable{
 	relation *table;
 } mtable;
 
+// Stores a hash and an index (hash table implemented with an AVL tree) for easier lookup
+typedef struct AVLnode{
+	uint64_t h;
+	uint64_t i;
+	struct AVLnode *left;
+	struct AVLnode *right;
+} node;
+
+typedef node* tree;
+
 
 // LTABLE
+
 ltable *newLtable(uint64_t size);
-
-ltable *loadLtable(FILE *fp);
-
-int storeLtable(const ltable *lt, FILE *fp);
 
 int ltableAdd(ltable *lt, char *str);
 
 uint64_t ltableSearch(ltable *lt, char *str);
 
-// HTABLE
+int storeLtable(const ltable *lt, FILE *fp);
 
-htable *newHtable(uint64_t size);
+ltable *loadLtable(FILE *fp);
 
-htable *loadHtable(FILE *fp);
+// CTABLE
 
-int storeHtable(const htable *ht, FILE *fp);
+ctable *newCtable(uint64_t size);
 
-int htableAdd(htable *ht, uint64_t h);
+int ctableAdd(ctable *ct, uint64_t n);
 
-uint64_t htableSearch(htable *ht, uint64_t h);
+int ctableDelete(ctable *ct, uint64_t n);
 
-int htableDelete(htable *ht, uint64_t h);
+uint64_t ctableSearch(ctable *ct, uint64_t n);
+
+int storeCtable(const ctable *ht, FILE *fp);
+
+ctable *loadCtable(FILE *fp);
 
 // MTABLE
 
 mtable *newMtable(uint64_t size);
 
-mtable *loadMtable(FILE *fp);
-
-int storeMtable(const mtable *mt, FILE *fp);
-
 int mtableAdd(mtable *mt, relation r);
 
 uint64_t mtableSearch(mtable *mt, relation r);
+
+uint64_t mtableSearchFile(mtable *mt, uint64_t file);
+
+uint64_t mtableSearchTag(mtable *mt, uint64_t tag);
+
+int storeMtable(const mtable *mt, FILE *fp);
+
+mtable *loadMtable(FILE *fp);
+
+// AVL TREE
+
+uint64_t height(node *n);
+
+node *newNode(uint64_t h, uint64_t i);
+
+node *insertNode(node *r, uint64_t h, uint64_t i);
+
+node *deleteNode(node *r, uint64_t h);
+
+uint64_t nodeSearch(node *n, uint64_t h);
+
+int storeAVLTree(tree root, FILE *fp);
+
+tree loadAVLTree(FILE *fp);
 
 #endif
