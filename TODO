@@ -1,12 +1,17 @@
-TODO	Use inttypes.h add, divide and multiply functions
-
-TODO	Consider refactoring tables to B-Trees (better performance?)
-
-TODO	Add remove* functions, restructure tables functions
+TODO	Standarize function names
 
 TODO	Get rid of old functionalities (strnatcmp, BM)
 
 ----------------------------------------------------------------
+DONE	Make it so count of other files/tags gets updated when deleting files/tags
+
+DONE	Add remove* functions, restructure tables functions
+
+DONE	Add changelog files
+
+DONE	Consider refactoring tables to B-Trees (better performance?)
+		NOTE: Ended up using AVL trees instead, only needed for hashes
+
 DONE	Change DB model from struct row
 			typedef struct{
 				char path[MAXPATH];

@@ -37,6 +37,18 @@ int ltableAdd(ltable *lt, char *str){
 	return 0;
 }
 
+int ltableRemove(ltable *lt, char *str){
+	uint64_t i = ltableSearch(lt, str);
+	if(i == -1){
+		return -1;
+	}
+	lt->size--;
+	for(uint64_t j = i; j < lt->size-1; ++j){
+		lt->table[j] = lt->table[j+1];
+	}
+	return 0;
+}
+
 uint64_t ltableSearch(ltable *lt, char *str){
 	uint32_t l;
 	str = normalizeStrLimit(str, &l, MAXPATH-1);
@@ -114,9 +126,8 @@ int ctableAdd(ctable *ct, uint64_t n){
 	return 0;
 }
 
-int ctableDelete(ctable *ct, uint64_t n){
-	uint64_t i = ctableSearch(ct, n);
-	if(i == -1){
+int ctableRemove(ctable *ct, uint64_t i){
+	if(i >= ct->size){
 		return -1;
 	}
 	ct->size--;
@@ -194,6 +205,52 @@ int mtableAdd(mtable *mt, relation r){
 	return 0;
 }
 
+int mtableRemove(mtable *mt, relation r){
+	uint64_t i = mtableSearch(mt, r);
+	if(i == -1){
+		return -1;
+	}
+	mt->size--;
+	for(uint64_t j = i; j < mt->size-1; ++j){
+		mt->table[j] = mt->table[j+1];
+	}
+	return 0;
+}
+
+int mtableRemoveFile(mtable *mt, uint64_t file){
+	relation *nmt = malloc(mt->size*sizeof(relation));
+	uint64_t ni = 0;
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(file != mt->table[i].file){
+			nmt[ni] = mt->table[i];
+			++ni;
+		}
+	}
+	mt->size = ni;
+	mt->table = malloc(mt->size*sizeof(relation));
+	for(uint64_t i = 0; i < mt->size; ++i){
+		mt->table[i] = nmt[i];
+	}
+	return 0;
+}
+
+int mtableRemoveTag(mtable *mt, uint64_t tag){
+	relation *nmt = malloc(mt->size*sizeof(relation));
+	uint64_t ni = 0;
+	for(uint64_t i = 0; i < mt->size; ++i){
+		if(tag != mt->table[i].tag){
+			nmt[ni] = mt->table[i];
+			++ni;
+		}
+	}
+	mt->size = ni;
+	mt->table = malloc(mt->size*sizeof(relation));
+	for(uint64_t i = 0; i < mt->size; ++i){
+		mt->table[i] = nmt[i];
+	}
+	return 0;
+}
+
 uint64_t mtableSearch(mtable *mt, relation r){
 	for(uint64_t i = 0; i < mt->size; ++i){
 		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
@@ -261,7 +318,7 @@ static inline uint64_t max(uint64_t a, uint64_t b){
 	return ((a > b) ? a : b);
 }
 
-uint64_t height(node *n){
+static uint64_t height(node *n){
 	if(n != NULL){
 		return 1 + max(height(n->left), height(n->right));
 	}
@@ -367,7 +424,7 @@ node *deleteNode(node *r, uint64_t h){
 		return r;
 	}
 	
-	uint64_t b = balance(r), bl = balance(r->left), br = balance(r->right);
+	int64_t b = balance(r), bl = balance(r->left), br = balance(r->right);
 	if(b > 1 && bl >= 0){	// Left left
 		return rotateNodeRight(r);
 	}

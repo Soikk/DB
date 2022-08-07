@@ -60,7 +60,7 @@ typedef struct lookupTable{
 	char **table; // They cant be longer than MAXPATH
 } ltable;
 
-// Stores a number (used as the count for files and tags in the mapping table)
+// Stores a number in the index that references the ltable (used as the count for files and tags in the mapping table)
 typedef struct countTable{
 	uint64_t size;
 	uint64_t *table;
@@ -94,6 +94,8 @@ ltable *newLtable(uint64_t size);
 
 int ltableAdd(ltable *lt, char *str);
 
+int ltableRemove(ltable *lt, char *str);
+
 uint64_t ltableSearch(ltable *lt, char *str);
 
 int storeLtable(const ltable *lt, FILE *fp);
@@ -106,7 +108,7 @@ ctable *newCtable(uint64_t size);
 
 int ctableAdd(ctable *ct, uint64_t n);
 
-int ctableDelete(ctable *ct, uint64_t n);
+int ctableRemove(ctable *ct, uint64_t n);
 
 uint64_t ctableSearch(ctable *ct, uint64_t n);
 
@@ -120,6 +122,12 @@ mtable *newMtable(uint64_t size);
 
 int mtableAdd(mtable *mt, relation r);
 
+int mtableRemove(mtable *mt, relation r);
+
+int mtableRemoveFile(mtable *mt, uint64_t file);
+
+int mtableRemoveTag(mtable *mt, uint64_t tag);
+
 uint64_t mtableSearch(mtable *mt, relation r);
 
 uint64_t mtableSearchFile(mtable *mt, uint64_t file);
@@ -131,8 +139,6 @@ int storeMtable(const mtable *mt, FILE *fp);
 mtable *loadMtable(FILE *fp);
 
 // AVL TREE
-
-uint64_t height(node *n);
 
 node *newNode(uint64_t h, uint64_t i);
 

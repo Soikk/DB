@@ -4,8 +4,8 @@
 
 int main(){
 
-	database *db = newDatabase("miDB");
 	inputBuffer *in = newInputBuffer();
+	/*database *db = newDatabase("miDB");
 	
 	
 	addFileTag(db, "vaca.png", "naturaleza");	
@@ -13,9 +13,11 @@ int main(){
 	addFileTag(db, "vaca.png", "lovely");
 	addFileTags(db, "vaca.png", 3, "nature", "animal", "very cool");
 	
-	storeDatabase(db, "db.db");
+	loadDatabase(db, "db.db");
 
-	printDatabase(db);
+	printDatabase(db);*/
+	
+	database *db = loadDatabase("db.db");
 	
 	debugDatabase(db);
 	
@@ -27,6 +29,8 @@ int main(){
 		printf("\t%s\n", db->ltags->table[l[j]]);
 	
 	}
+	
+	
 	
 
 	while(0){
