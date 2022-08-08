@@ -5,13 +5,12 @@
 
 ltable *newLtable(uint64_t size){
 	ltable *lt = malloc(sizeof(ltable));
-	size = (((uint64_t)size) < 0) ? 0 : size;
 	lt->size = size;
 	lt->table = malloc(size*sizeof(char*));
 	return lt;
 }
 
-int ltableAdd(ltable *lt, char *str){
+int insertLtable(ltable *lt, char *str){
 	uint32_t ls;
 	str = normalizeStrLimit(str, &ls, MAXPATH-1);
 	
@@ -37,19 +36,19 @@ int ltableAdd(ltable *lt, char *str){
 	return 0;
 }
 
-int ltableRemove(ltable *lt, char *str){
-	uint64_t i = ltableSearch(lt, str);
+int removeLtable(ltable *lt, char *str){
+	uint64_t i = searchLtable(lt, str);
 	if(i == -1){
 		return -1;
 	}
 	lt->size--;
-	for(uint64_t j = i; j < lt->size-1; ++j){
+	for(uint64_t j = i; j < lt->size; ++j){
 		lt->table[j] = lt->table[j+1];
 	}
 	return 0;
 }
 
-uint64_t ltableSearch(ltable *lt, char *str){
+uint64_t searchLtable(ltable *lt, char *str){
 	uint32_t l;
 	str = normalizeStrLimit(str, &l, MAXPATH-1);
 	
@@ -58,7 +57,7 @@ uint64_t ltableSearch(ltable *lt, char *str){
 			return i;
 		}
 	}
-	return -1;
+	return UINTMAX_MAX;
 }
 
 int storeLtable(const ltable *lt, FILE *fp){
@@ -102,13 +101,12 @@ ltable *loadLtable(FILE *fp){
 
 ctable *newCtable(uint64_t size){
 	ctable *ct = malloc(sizeof(ctable));
-	size = (((uint64_t)size) < 0) ? 0 : size;
 	ct->size = size;
-	ct->table = malloc(size*sizeof(uint64_t));
+	ct->table = calloc(size, sizeof(uint64_t));
 	return ct;
 }
 
-int ctableAdd(ctable *ct, uint64_t n){
+int insertCtable(ctable *ct, uint64_t n){
 	uint64_t *nct = malloc((ct->size+1)*sizeof(uint64_t));
 	for(uint64_t i = 0; i < ct->size; ++i){
 		if(n == ct->table[i]){
@@ -126,24 +124,24 @@ int ctableAdd(ctable *ct, uint64_t n){
 	return 0;
 }
 
-int ctableRemove(ctable *ct, uint64_t i){
-	if(i >= ct->size){
+int removeCtable(ctable *ct, uint64_t i){
+	if(i >= ct->size || i < 0){
 		return -1;
 	}
 	ct->size--;
-	for(uint64_t j = i; j < ct->size-1; ++j){
+	for(uint64_t j = i; j < ct->size; ++j){
 		ct->table[j] = ct->table[j+1];
 	}
 	return 0;
 }
 
-uint64_t ctableSearch(ctable *ct, uint64_t n){
+uint64_t searchCtable(ctable *ct, uint64_t n){
 	for(uint64_t i = 0; i < ct->size; ++i){
 		if(n == ct->table[i]){
 			return i;
 		}
 	}
-	return -1;
+	return UINTMAX_MAX;
 }
 
 int storeCtable(const ctable *ct, FILE *fp){
@@ -182,13 +180,12 @@ ctable *loadCtable(FILE *fp){
 
 mtable *newMtable(uint64_t size){
 	mtable *mt = malloc(sizeof(mtable));
-	size = (((uint64_t)size) < 0) ? 0 : size;
 	mt->size = size;
 	mt->table = malloc(size*sizeof(relation));
 	return mt;
 }
 
-int mtableAdd(mtable *mt, relation r){
+int insertMtable(mtable *mt, relation r){
 	relation *nmt = malloc((mt->size+1)*sizeof(relation));
 	for(uint64_t i = 0; i < mt->size; ++i){
 		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
@@ -205,19 +202,19 @@ int mtableAdd(mtable *mt, relation r){
 	return 0;
 }
 
-int mtableRemove(mtable *mt, relation r){
-	uint64_t i = mtableSearch(mt, r);
+int removeMtable(mtable *mt, relation r){
+	uint64_t i = searchMtable(mt, r);
 	if(i == -1){
 		return -1;
 	}
 	mt->size--;
-	for(uint64_t j = i; j < mt->size-1; ++j){
+	for(uint64_t j = i; j < mt->size; ++j){
 		mt->table[j] = mt->table[j+1];
 	}
 	return 0;
 }
 
-int mtableRemoveFile(mtable *mt, uint64_t file){
+int removeFileMtable(mtable *mt, uint64_t file){
 	relation *nmt = malloc(mt->size*sizeof(relation));
 	uint64_t ni = 0;
 	for(uint64_t i = 0; i < mt->size; ++i){
@@ -234,7 +231,7 @@ int mtableRemoveFile(mtable *mt, uint64_t file){
 	return 0;
 }
 
-int mtableRemoveTag(mtable *mt, uint64_t tag){
+int removeTagMtable(mtable *mt, uint64_t tag){
 	relation *nmt = malloc(mt->size*sizeof(relation));
 	uint64_t ni = 0;
 	for(uint64_t i = 0; i < mt->size; ++i){
@@ -251,31 +248,13 @@ int mtableRemoveTag(mtable *mt, uint64_t tag){
 	return 0;
 }
 
-uint64_t mtableSearch(mtable *mt, relation r){
+uint64_t searchMtable(mtable *mt, relation r){
 	for(uint64_t i = 0; i < mt->size; ++i){
 		if(r.file == mt->table[i].file && r.tag == mt->table[i].tag){
 			return i;
 		}
 	}
-	return -1;
-}
-
-uint64_t mtableSearchFile(mtable *mt, uint64_t file){
-	for(uint64_t i = 0; i < mt->size; ++i){
-		if(file == mt->table[i].file){
-			return i;
-		}
-	}
-	return -1;
-}
-
-uint64_t mtableSearchTag(mtable *mt, uint64_t tag){
-	for(uint64_t i = 0; i < mt->size; ++i){
-		if(tag == mt->table[i].tag){
-			return i;
-		}
-	}
-	return -1;
+	return UINTMAX_MAX;
 }
 
 int storeMtable(const mtable *mt, FILE *fp){
@@ -314,32 +293,6 @@ mtable *loadMtable(FILE *fp){
 
 // AVL TREE
 
-static inline uint64_t max(uint64_t a, uint64_t b){
-	return ((a > b) ? a : b);
-}
-
-static uint64_t height(node *n){
-	if(n != NULL){
-		return 1 + max(height(n->left), height(n->right));
-	}
-	return 0;
-}
-
-static int64_t balance(node *n){
-	if(n != NULL){
-		return height(n->left) - height(n->right);
-	}
-	return 0;
-}
-
-static node *lowestNode(node *n){
-	node *t = n;
-	while(t->left != NULL){
-		t = t->left;
-	}
-	return t;
-}
-
 node *newNode(uint64_t h, uint64_t i){
 	node *n = malloc(sizeof(node));
 	n->h = h;
@@ -365,6 +318,24 @@ static node *rotateNodeLeft(node *r){
 	r->right = nc;
 	nr->left = r;
 	return nr;
+}
+
+static inline uint64_t max(uint64_t a, uint64_t b){
+	return ((a > b) ? a : b);
+}
+
+static uint64_t height(node *n){
+	if(n != NULL){
+		return 1 + max(height(n->left), height(n->right));
+	}
+	return 0;
+}
+
+static int64_t balance(node *n){
+	if(n != NULL){
+		return height(n->left) - height(n->right);
+	}
+	return 0;
 }
 
 node *insertNode(node *r, uint64_t h, uint64_t i){
@@ -396,13 +367,21 @@ node *insertNode(node *r, uint64_t h, uint64_t i){
 	return r;
 }
 
-node *deleteNode(node *r, uint64_t h){
+static node *lowestNode(node *n){
+	node *t = n;
+	while(t->left != NULL){
+		t = t->left;
+	}
+	return t;
+}
+
+node *removeNode(node *r, uint64_t h){
 	if(r == NULL){
 		return r;
 	}else if(r->h > h){
-		r->left = deleteNode(r->left, h);
+		r->left = removeNode(r->left, h);
 	}else if(r->h < h){
-		r->right = deleteNode(r->right, h);
+		r->right = removeNode(r->right, h);
 	}else{
 		if(r->left == NULL || r->right == NULL){
 			node *t = (r->left) ? r->left : r->right;
@@ -417,7 +396,7 @@ node *deleteNode(node *r, uint64_t h){
 			node *t = lowestNode(r->right);
 			r->h = t->h;
 			r->i = t->i;
-			r->right = deleteNode(r->right, t->h);
+			r->right = removeNode(r->right, t->h);
 		}
 	}
 	if(r == NULL){
@@ -443,15 +422,15 @@ node *deleteNode(node *r, uint64_t h){
 }
 
 // Searches for h, returns i
-uint64_t nodeSearch(node *n, uint64_t h){
+uint64_t searchNode(node *n, uint64_t h){
 	if(n == NULL){
-		return -1;
+		return UINTMAX_MAX;
 	}else if(h == n->h){
 		return n->i;
 	}else if(h < n->h){
-		return nodeSearch(n->left, h);
+		return searchNode(n->left, h);
 	}else if(h > n->h){
-		return nodeSearch(n->right, h);
+		return searchNode(n->right, h);
 	}
 }
 

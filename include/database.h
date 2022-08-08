@@ -23,6 +23,8 @@ int addFileTag(database *db, char *file, char *tag);
 
 int addFileTags(database *db, char *file, int ntags, ...);
 
+int addTagFiles(database *db, char *tag, int nfiles, ...);
+
 int removeFile(database *db, char *file);
 
 int removeTag(database *db, char *tag);

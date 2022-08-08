@@ -1,8 +1,10 @@
-TODO	Standarize function names
-
 TODO	Get rid of old functionalities (strnatcmp, BM)
 
 ----------------------------------------------------------------
+DONE	Must update all indexes in map when removing a file or a tag
+
+DONE	Standarize function names
+
 DONE	Make it so count of other files/tags gets updated when deleting files/tags
 
 DONE	Add remove* functions, restructure tables functions

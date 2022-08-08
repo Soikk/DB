@@ -4,21 +4,21 @@
 
 int main(){
 
+
 	inputBuffer *in = newInputBuffer();
-	/*database *db = newDatabase("miDB");
-	
-	
-	addFileTag(db, "vaca.png", "naturaleza");	
+	database *db = newDatabase("miDB");
+
+
+	addFileTag(db, "vaca.png", "naturalezas");	
 	addFileTags(db, "terry-davis.jpg", 3, "holyC", "programmer", "very cool");
 	addFileTag(db, "vaca.png", "lovely");
 	addFileTags(db, "vaca.png", 3, "nature", "animal", "very cool");
-	
-	loadDatabase(db, "db.db");
+	addFileTag(db, "terry-davis.jpg", "based");
 
-	printDatabase(db);*/
-	
-	database *db = loadDatabase("db.db");
-	
+	storeDatabase(db, "db.db");
+
+	printDatabase(db);
+
 	debugDatabase(db);
 	
 	uint64_t *l, i;
@@ -29,6 +29,12 @@ int main(){
 		printf("\t%s\n", db->ltags->table[l[j]]);
 	
 	}
+	
+	addTagFiles(db, "elemento", 2, "vaca.png", "terry-davis.jpg");
+	
+	printDatabase(db);
+	
+	debugDatabase(db);
 	
 	
 	

@@ -1,106 +1,327 @@
 OBSERVATIONS
 
 STORAGE
-	An ltable consists of its size and a "string" table (char**).
-	An ltable is initialized with a size, that can be 0. The table inside the ltable is NOT initalized.
-	An ltable is written to disk in the following format:
-		- 1 byte as a header that stores the 'L' ASCII character.
-		- 8 bytes (64 bits) that store the size of the table.
-		- For each "string" in its table, it has:
-			· 4 bytes (32 bits) that stores the string size (counting the trailing 0).
-			· However many bytes as size, for storing each of the caracters in the string, including the trailing 0.
-		- 1 byte as an "end" that stores the 'E' ASCII character.
-	When loading an ltable, if the header doesn't match, it will print "Header is '(header)' not 'L'" to standard error.
-	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
-	Storing an ltable returns 0 upon completion.
-	When working with "strings", all "strings" are normalized with normalizeStrLimit, lowercasing it, removing trailing spaces and adding a limit of MAXPATH-1 characters plus the trailing 0.
-	Adding a "string" to an ltable consists of:
-		- Creating a new table of size size+1.
-		- Storing all existing "strings" in said table.
-		- Appending the new "string" at the end of the table.
-		- Reallocating space in the ltable's table.
-		- Storing all "strings" in the new table in the ltable's table.
-		- Increasing the ltable's size by 1.
-	If the "string" is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
-	Searching for a "string" returns the index [0 ... size-1] of said "string" in the table, or -1 if its not found.
 
-	An htable consists of its size and an unsigned 64 bit integer table.
-	An htable is initialized with a size, that can be 0. The table inside the htable IS initialized.
-	An htable is written to disk in the following format:
-		- 1 byte as a header that stores the 'H' ASCII character.
-		- 8 bytes (64 bits) that store the size of the table.
-		- 8 bytes (64 bits) for each element in its table.
-		- 1 byte as a "end" that stores the 'E' ASCII character.
-	When loading an htable, if the header doesn't match, it will print "Header is '(header)' not 'H'" to standard error.
-	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
-	Storing an htable returns 0 upon completion.
-	Adding a 64 bit unsigned integer to an htable consists of:
-		- Creating a new table of size size+1.
-		- Storing all existing 64 bit unsigned integers in said table.
-		- Appending the new 64 bit unsigned integer at the end of the table.
-		- Reallocating space in the htable's table.
-		- Storing all 64 bit unsigned integers in the new table in the htable's table.
-		- Increasing the htable's size by 1.
-	If the 64 bit unsigned integer is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
-	Searching for a 64 bit unsigned integer returns the index [0 ... size-1] of said 64 bit unsigned integer in the table, or -1 if its not found.
-
-	An mtable consists of its size and a struct relation table.
-		A struct relation consists of two 64 bit numbers. The first one is the file identifier and the second one the tag identifier.
-	An mtable is initialized with a size, that can be 0. The table inside the mtable is NOT initialized.
-	An mtable is written to disk in the following format:
-		- 1 byte as a header that stores the 'M' ASCII character.
-		- 8 bytes (64 bits) that store the size of the table.
-		- For each struct relation in its table, it has:
-			· 8 bytes (64 bits) that store the file identifier of the relation.
-			· 8 bytes (64 bits) that store the tag identifier of the relation.
-		- 1 byte as a "end" that stores the 'E' ASCII character.
-	When loading an mtable, if the header doesn't match, it will print "Header is '(header)' not 'M'" to standard error.
-	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
-	Storing an mtable returns 0 upon completion.
-	Adding a relation to an mtable consists of:
-		- Creating a new table of size size+1.
-		- Storing all existing relations in said table.
-		- Appending the new relation at the end of the table.
-		- Reallocating space in the mtable's table.
-		- Storing all relations in the new table in the mtable's table.
-		- Increasing the mtable's size by 1.
-	If the relation is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
-	Searching for a relation returns the index [0 ... size-1] of said relation in the table, or -1 if its not found.
-
+	LTABLE
+		An ltable consists of its size and a "string" table (char**).
+		When working with "strings", all "strings" are normalized with normalizeStrLimit, lowercasing it, removing trailing spaces and adding a limit of MAXPATH-1 characters (extra space is saved for the trailing 0).
 	
-	AVL trees (tree, or node*) are self-balancing binary search trees used for storing the hashes and the index they store.
-	Random lookup, insertion and deletion is O(log n), which makes them very well suited for a database. I have chosen AVL trees over B-trees for simplicity.
-	The height of a node is 1 + the maximum of the height of its left and right children.
-	The balance of a node is the height of its left child minus the height of its right child.
-	The rotation, insert and delete functions are explained in
-		https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
-		https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+		ltable * newLtable(uint64_t size);
+			An ltable is initialized with a size, that can be 0. The size is an unsigned 64 bit integer; thus, any negative number passed as a size will be converted to that format.
+			The table inside the ltable is initalized as pointers to char (char*), but space for each "string" is NOT allocated.
+			
+		int insertLtable(ltable *lt, char *str);
+			Adding a "string" to an ltable consists of:
+				- Creating a new table of size size+1.
+				- Storing all existing "strings" in said table.
+				- Appending the new "string" at the end of the table.
+				- Increasing the ltable's size by 1.
+				- Reallocating space in the ltable's table.
+				- Storing all "strings" in the new table in the ltable's table.
+			If the "string" is already on the table, it returns -1. Otherwise, it returns 0 upon completion.
+
+		int removeLtable(ltable *lt, char *str);
+			Removes str from lt by finding the index of str and shifting all the cells higher up on the table than this index one space down, then reducing the size of lt.
+			If no index is found (str not in lt) it returns -1. Otherwise, it returns 0 upon completion.
+
+		uint64_t searchLtable(ltable *lt, char *str);
+			Searching for a "string" returns the index [0 ... size-1] of said "string" in the table, or UINTMAX_MAX if its not found.
+
+		int storeLtable(const ltable *lt, FILE *fp);
+			An ltable is written to disk in the following format:
+				- 1 byte as a header that stores the 'L' ASCII character.
+				- 8 bytes (64 bits) that store the size of the table.
+				- For each "string" in its table, it has:
+					· 4 bytes (32 bits) that stores the string size (counting the trailing 0).
+					· However many bytes as size, for storing each of the caracters in the string, including the trailing 0.
+				- 1 byte as an "end" that stores the 'E' ASCII character.
+			The function returns 0 upon completion.
+
+		ltable *loadLtable(FILE *fp);
+			When loading an ltable, if the header doesn't match, it will print "Header is '(header)' not 'L'" to standard error.
+			Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error.
+
+
+	CTABLE
+		A ctable consists of its size and an unsigned 64 bit integer table.
 		
-	
+		ctable *newCtable(uint64_t size);
+			An ctable is initialized with a size, that can be 0. The size is an unsigned 64 bit integer; thus, any negative number passed as a size will be converted to that format.
+			The table inside the ctable is allocated and initialized to 0 with calloc.
+
+		int insertCtable(ctable *ct, uint64_t n);
+			Adding a 64 bit unsigned integer to a ctable consists of:
+				- Creating a new table of size size+1.
+				- Storing all existing 64 bit unsigned integers in said table.
+				- Appending the new 64 bit unsigned integer at the end of the table.
+				- Reallocating space in the ctable's table.
+				- Storing all 64 bit unsigned integers in the new table in the ctable's table.
+				- Increasing the ctable's size by 1.
+			If the 64 bit unsigned integer is already on the table, it returns -1. Otherwise, it returns 0 upon completion.
+
+		int removeCtable(ctable *ct, uint64_t i);
+			Removes index i from ct by shifting all the cells higher up on the table than this index one space down, then reducing the size of ct.
+			If the index is out of bounds (i >= ct->size || i < 0) it returns -1. Otherwise, it returns 0 upon completion.
+
+		uint64_t searchCtable(ctable *ct, uint64_t n);
+			Searching for a 64 bit unsigned integer returns the index [0 ... size-1] of said 64 bit unsigned integer in the table, or UINTMAX_MAX if its not found.
+
+		int storeCtable(const ctable *ct, FILE *fp);
+			A ctable is written to disk in the following format:
+				- 1 byte as a header that stores the 'C' ASCII character.
+				- 8 bytes (64 bits) that store the size of the table.
+				- 8 bytes (64 bits) for each element in its table.
+				- 1 byte as a "end" that stores the 'E' ASCII character.
+			The function returns 0 upon completion.
+
+		ctable *loadCtable(FILE *fp);
+			When loading an htable, if the header doesn't match, it will print "Header is '(header)' not 'H'" to standard error.
+			Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+
+
+	MTABLE
+		An mtable consists of its size and a struct relation table.
+			A struct relation consists of two 64 bit numbers. The first one is the file identifier and the second one the tag identifier.
+
+		mtable *newMtable(uint64_t size);
+			An mtable is initialized with a size, that can be 0. The size is an unsigned 64 bit integer; thus, any negative number passed as a size will be converted to that format.
+			The table inside the mtable is allocated, but not initialized with values.
+
+		int insertMtable(mtable *mt, relation r);
+			Adding a relation to an mtable consists of:
+				- Creating a new table of size size+1.
+				- Storing all existing relations in said table.
+				- Appending the new relation at the end of the table.
+				- Reallocating space in the mtable's table.
+				- Storing all relations in the new table in the mtable's table.
+				- Increasing the mtable's size by 1.
+			If the relation is already on the table, it returns -1. Otherwise, upon it returns 0 upon completion.
+
+		int removeMtable(mtable *mt, relation r);
+			Removes r from mt by finding the index of r and shifting all the cells higher up on the table than this index one space down, then reducing the size of mt.
+			If no index is found (r not in mt) it returns -1. Otherwise, it returns 0 upon completion.
+
+		int removeFileMtable(mtable *mt, uint64_t file);
+			Removes all the relations with file file indetifier from the table.
+			This is done using a separate table to store all the relations that dont have file file indetifier in them, allocating space for the new smaller table and copying the non-matching relations to the table.
+			The function returns 0 upon completion.
+
+		int removeTagMtable(mtable *mt, uint64_t tag);
+			Removes all the relations with tag tag indetifier from the table.
+			This is done using a separate table to store all the relations that dont have tag tag indetifier in them, allocating space for the new smaller table and copying the non-matching relations to the table.
+			The function returns 0 upon completion.
+
+		uint64_t searchMtable(mtable *mt, relation r);
+			Searching for a relation returns the index [0 ... size-1] of said relation in the table, or UINTMAX_MAX if its not found.
+
+		int storeMtable(const mtable *mt, FILE *fp);
+			An mtable is written to disk in the following format:
+				- 1 byte as a header that stores the 'M' ASCII character.
+				- 8 bytes (64 bits) that store the size of the table.
+				- For each struct relation in its table, it has:
+					· 8 bytes (64 bits) that store the file identifier of the relation.
+					· 8 bytes (64 bits) that store the tag identifier of the relation.
+				- 1 byte as a "end" that stores the 'E' ASCII character.
+			This function returns 0 upon completion.
+
+		mtable *loadMtable(FILE *fp);
+			When loading an mtable, if the header doesn't match, it will print "Header is '(header)' not 'M'" to standard error.
+			Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+
+
+	AVL TREE
+		AVL trees (tree, or node*) are self-balancing binary search trees used for storing the hashes and the index they store.
+		Random lookup, insertion and deletion is O(log n), which makes them very well suited for a database. I have chosen AVL trees over B-trees for simplicity.
+		The height of a node is 1 + the maximum of the height of its left and right children.
+		The balance of a node is the height of its left child minus the height of its right child.
+		The rotation, insert and delete functions are explained in
+			https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
+			https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+
+		node *newNode(uint64_t h, uint64_t i);
+			Returns a pointer to a newly created node with hash h, index i and left and right pointers set to NULL.
+
+		static node *rotateNodeRight(node *r);
+			Rotates node r right and returns a pointer to the resulting node in that position.
+			https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
+			https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+
+		static node *rotateNodeLeft(node *r);
+			Rotates node r left and returns a pointer to the resulting node in that position.
+			https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
+			https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+
+		node *insertNode(node *r, uint64_t h, uint64_t i);
+			Inserts a new node with hash h and index i into node r, self balancing the node structure after having done so.
+			Returns a pointer to the resulting node in that position.
+			https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
+
+		static node *lowestNode(node *n);
+			Returns a pointer to the lowest (leftmost) node of n.
+
+		node *removeNode(node *r, uint64_t h);
+			This function uses the auxiliary function lowestNode.
+			Removes node with hash h from the node structure, self balancing said node structure after doing so.
+			Returns a pointer to the resulting node in that position.
+			https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
+
+		uint64_t searchNode(node *n, uint64_t h);
+			Binary searches for a node with hash h in node n's node structure.
+			If found, returns the index of said node. Otherwise it returns UINTMAX_MAX.
+
+		static void nodesToArray(node *n, uint64_t *array, uint64_t i);
+			Auxiliary function that stores the node n in the array array at position i if it exists, and then does the same thing with its children.
+			The array is double the size of the maximum possible number of nodes to be able to store both the hash and the index.
+			https://www.ritambhara.in/storing-binary-tree-in-a-file/
+
+		static uint64_t *treeToArray(tree root, uint64_t *maxNodes);
+			Auxiliary function that stores the tree root in an array and returns it, storing its length (maxNodes = 2^height - 1) in maxNodes.
+			It creates an array of size maxNodes*2 to account for the hash and the index, and initializes all the cells to UINTMAX_MAX.
+			It then uses the auxiliary function nodesToArray to store the nodes in the array starting with the root at index 0.
+			This function returns the resulting array.
+			https://www.ritambhara.in/storing-binary-tree-in-a-file/
+
+		int storeAVLTree(tree root, FILE *fp);
+			This function uses the auxiliary function treeToArray to store the tree in an array to be able to store it in and read it from disk more efficiently.
+			An AVL tree is written to disk in the following format:
+				- 1 byte as a header that stores the 'T' ASCII character.
+				- 8 bytes (64 bits) that store the size of the tree (maxNodes = 2^height - 1).
+				- For each possible node in the tree, it stores:
+					· 8 bytes (64 bits) that store the hash of the node.
+					· 8 bytes (64 bits) that store the index of the node.
+				- 1 byte as a "end" that stores the 'E' ASCII character.
+			This function returns 0 upon completion.
+
+		static node *arrayToNodes(uint64_t *array, uint64_t i, uint64_t maxNodes);
+			Auxiliary function that reads a node from array (of size maxNodes*2) by reading from index i+0 the hash of the node and from index i+1 the index of the node.
+			It then reads its left child recursively from index (2*i + 1)*2, and its right child recursively from index (2*i + 2)*2.
+			It returns the resulting node.
+			https://www.ritambhara.in/storing-binary-tree-in-a-file/
+
+		tree loadAVLTree(FILE *fp);
+			This function uses the auxiliary function arrayToNodes to read the tree from the array stored on disk.
+			When loading an AVL tree, if the header doesn't match, it will print "Header is '(header)' not 'T'" to standard error.
+			Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'E'" to standard error. 
+
+
+
 
 DATABASE
 
 	A database consists of a 32 character (including trailing 0) name, and:
 		- 2 lookup tables (ltable) for storing the unique file and tag names.
-		- 2 hash tables (htable) for storing the hashes of the names in the ltables.
-		- 2 hash tables (htable) for storing the count of the files & tags in the mapping table (how many files one tags has and vice versa).
-		- 1 mapping tables (mtable) for storing the mappings of the tags to the files.
+		- 2 count tables (ctable) for storing the count of the files & tags in the mapping table (how many files one tags has and vice versa).
+		- 2 hash tables implemented as an AVL tree (node, tree) for storing the hashes and indexes of the names in the ltables.
+		- 1 mapping table (mtable) for storing the mappings of the tags to the files.
 	The lookup tables serve the purpose of looking up the names of the files and tags when needed.
-	The first 2 hash tables serve the purpose of providing faster search times when searching for a file or tag.
-	The remaining 2 hash tables (fcount and tcount) serve the purpose of storing the count of how many of each file and tag is in the mapping table.
-	Each respective lookup and hash tables (lfiles, hfiles and fcount, ltags, htags and hcount) share indexes.
+	The count tables serve the purpose of storing the count of how many of each file and tag is in the mapping table.
+	The AVL trees serve the purpose of providing faster search times when searching for a file or tag.
+	Each respective lookup and count tables (lfiles, and cfiles, ltags and ctags) share indexes, that are stored with the hashes of their string in the AVL trees (hfiles and htags).
 	The mapping table serves the purpose of storing the relation between different files and tags as the pairing of their indexes.
-	A database is written to disk in the following format:
-		- 2 bytes as a header that store the 'DB' ASCII characters.
-		- 32 bytes that store the name of the database.
-		- The lfiles ltable.
-		- The ltags ltable.
-		- The hfiles htable.
-		- The htags htable.
-		- The fcount htable;
-		- The tcount htable;
-		- The map mtable.
-		- 3 bytes as "end" that store the 'END'"' ASCII characters.
-	When loading a database, if the header doesn't match, it will print "Header is '(header)' not 'DB'" to standard error.
-	Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'END'" to standard error. 
-	Storing a database returns 0 upon completion.
+
+	database *newDatabase(char *name);
+		A database is initialized with a name, two 0-length ltables, two 0-length ctables, two NULL pointers to nodes and a 0-length mapping table.
+
+	uint64_t addFile(database *db, char *file);
+		Adds a file to the database by:
+			- Normalizing the "string" file.
+			- Hashing the "string" file.
+			- Looking up if its already on the database.
+			- If it isn't, we add the "string" to the ltable lfiles, we add a new entry with count 0 to the ctable cfiles and we add the hash to the AVL tree hfiles paired with its index on lfiles and cfiles.
+		This function returns the index on the ltable & ctable upon completion, whether it was already in the database or we just inserted it.
+
+	uint64_t addTag(database *db, char *tag);
+		Adds a tag to the database by:
+			- Normalizing the "string" tag.
+			- Hashing the "string" tag.
+			- Looking up if its already on the database.
+			- If it isn't, we add the "string" to the ltable ltags, we add a new entry with count 0 to the ctable ctags and we add the hash to the AVL tree htags paired with its index on ltags and ctags.
+		This function returns the index on the ltable & ctable upon completion, whether it was already in the database or we just inserted it.
+
+	static void increaseCount(ctable *ct, uint64_t i);
+		Auxiliary function that increases the count of cell i at ct's table;
+
+	static void decreaseCount(ctable *ct, uint64_t i);
+		Auxiliary function that decreases the count of cell i at ct's table;
+
+	static int addRelation(database *db, relation r);
+		Auxiliary function that adds a relation to the mapping table in db.
+		This function returns 0 if r was inserted correctly or -1 if r was already on the database.
+
+	int addFileTag(database *db, char *file, char *tag);
+		This function uses the auxiliary functions addRelation and increaseCount.
+		Adds a file and a tag to the database, and its relation.
+		If the file or the tag or both were already on the database, it still adds the relation.
+		If the relation wasn't in the database, it adds one to the cfiles' table for the file index and another one to the ctags' table for the file index, and then returns 0.
+		If the relation was in the database, it returns -1.
+
+	int addFileTags(database *db, char *file, int ntags, ...);
+		Adds multiple tags to a single file using addFileTag.
+		Returns 0 upon completion.
+
+	int addTagFiles(database *db, char *tag, int nfiles, ...);
+		Adds the same tag to multiple files using addFileTag.
+		Returns 0 upon completion.
+
+	static void decreaseHigherIndexNode(node *n, uint64_t i);
+		Auxiliary function that decreases the indexes in the node structure of n by one if they're bigger than i.
+
+	static void decreaseHigherFileIndexMap(mtable *mt, uint64_t i);
+		Auxiliary function that decreases the file indexes in the mapping table mt by one if they're bigger than i.
+
+	static void decreaseHigherTagIndexMap(mtable *mt, uint64_t i);
+		Auxiliary function that decreases the tag indexes in the mapping table mt by one if they're bigger than i.
+
+	int removeFile(database *db, char *file);
+		Removes the file file from the database by removing the "string" file from lfiles, its count entry in cfiles, its node in hfiles and all the mapping table entries that have its index as file index.
+		Removing the "string" from lfiles and the count from cfiles moves all higher entries a place down.
+		To counter this, we use the auxiliary functions decreaseHigherIndexNode and decreaseHigherFileIndexMap to update all the higher indexes in hfiles and map.
+		This function returns 0 upon completion or -1 if the file is not in the database.
+
+	int removeTag(database *db, char *tag);
+		Removes the tag tag from the database by removing the "string" tag from ltags, its count entry in ctags, its node in htags and all the mapping table entries that have its index as tag index.
+		Removing the "string" from ltags and the count from ctags moves all higher entries a place down.
+		To counter this, we use the auxiliary functions decreaseHigherIndexNode and decreaseHigherTagIndexMap to update all the higher indexes in htags and map.
+		This function returns 0 upon completion or -1 if the tag is not in the database.
+
+	int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl);
+		Stores in r a list with the indexes of the first n tags that this file has.
+		If n is 0, it returns all of them. Stores in rl the length of r.
+		This function returns 0 upon completion, or -1 if the file is not in the database.
+
+	int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl);
+		Stores in r a list with the indexes of the first n files that have this tag.
+		If n is 0, it returns all of them. Stores in rl the length of r.
+		This function returns 0 upon completion, or -1 if the tag is not in the database.
+
+	int storeDatabase(database *db, const char *path);
+		A database is written to disk in the following format:
+			- 2 bytes as a header that store the 'DB' ASCII characters.
+			- 32 bytes that store the name of the database.
+			- The lfiles ltable.
+			- The ltags ltable.
+			- The cfiles ctable;
+			- The ctags ctable;
+			- The hfiles AVL tree.
+			- The htags AVL tree.
+			- The map mtable.
+			- 3 bytes as "end" that store the 'END'"' ASCII characters.
+		This function returns 0 upon completion.
+
+	database *loadDatabase(const char* path);
+		When loading a database, if the header doesn't match, it will print "Header is '(header)' not 'DB'" to standard error.
+		Likewise, if the "end" doesn't match, it will print "End is '(end)' not 'END'" to standard error.
+
+	void printDatabase(database *db);
+		Prints the database in the format (file) -> (tag) for all the relations in the database.
+
+	void debugAVLtree(node *n);
+		Prints an AVL tree in preorder.
+
+	void debugDatabase(database *db);
+		Prints the whole database:
+			- Its name.
+			- Its 2 ltables.
+			- Its 2 ctables.
+			- Its 2 AVL trees.
+			- Its mapping table.

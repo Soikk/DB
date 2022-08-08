@@ -14,6 +14,35 @@ database *newDatabase(char *name){
 	return db;
 }
 
+uint64_t addFile(database *db, char *file){
+	uint32_t l;
+	file = normalizeStrLimit(file, &l, MAXPATH-1);
+	uint64_t h = crc64(0, file, l);
+	uint64_t i = searchNode(db->hfiles, h);
+	if(i == -1){
+		insertLtable(db->lfiles, file);
+		insertCtable(db->cfiles, 0);
+		i = db->lfiles->size-1;
+		db->hfiles = insertNode(db->hfiles, h, i);
+	}
+	return i;
+}
+
+uint64_t addTag(database *db, char *tag){
+	uint32_t l;
+	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
+	uint64_t h = crc64(0, tag, l);
+	uint64_t i = searchNode(db->htags, h);
+	if(i == -1){
+		insertLtable(db->ltags, tag);
+		insertCtable(db->ctags, 0);
+		i = db->ltags->size-1;
+		db->htags = insertNode(db->htags, h, i);
+		
+	}
+	return i;
+}
+
 static void increaseCount(ctable *ct, uint64_t i){
 	ct->table[i]++;
 }
@@ -22,55 +51,23 @@ static void decreaseCount(ctable *ct, uint64_t i){
 	ct->table[i]--;
 }
 
-uint64_t addFile(database *db, char *file){
-	uint32_t l;
-	file = normalizeStrLimit(file, &l, MAXPATH-1);
-	uint64_t h = crc64(0, file, l);
-	uint64_t i = nodeSearch(db->hfiles, h);
-	
-	if(i == -1){
-		ltableAdd(db->lfiles, file);
-		ctableAdd(db->cfiles, 0);
-		i = db->lfiles->size-1;
-		db->hfiles = insertNode(db->hfiles, h, i);
-	}
-	increaseCount(db->cfiles, i);
-
-	return i;
-}
-
-uint64_t addTag(database *db, char *tag){
-	uint32_t l;
-	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
-	uint64_t h = crc64(0, tag, l);
-	uint64_t i = nodeSearch(db->htags, h);
-	
-	if(i == -1){
-		ltableAdd(db->ltags, tag);
-		ctableAdd(db->ctags, 0);
-		i = db->ltags->size-1;
-		db->htags = insertNode(db->htags, h, i);
-		
-	}
-	increaseCount(db->ctags, i);
-
-	return i;
-}
-
 static int addRelation(database *db, relation r){
-	if(mtableSearch(db->map, r) != -1){
-		return -1;
+	if(searchMtable(db->map, r) == UINTMAX_MAX){
+		insertMtable(db->map, r);
+		return 0;
 	}
-	mtableAdd(db->map, r);
-
-	return 0;
+	return -1;
 }
 
 int addFileTag(database *db, char *file, char *tag){
 	uint64_t fi = addFile(db, file), ti = addTag(db, tag);
-	addRelation(db, (relation){.file = fi, .tag = ti});
-	
-	return 0;
+	int r = addRelation(db, (relation){.file = fi, .tag = ti});
+	if(r == 0){
+		increaseCount(db->cfiles, fi);
+		increaseCount(db->ctags, ti);
+		return 0;
+	}
+	return -1;
 }
 
 int addFileTags(database *db, char *file, int ntags, ...){
@@ -81,14 +78,56 @@ int addFileTags(database *db, char *file, int ntags, ...){
 		addFileTag(db, file, tag);
 	}
 	va_end(tags);
-
 	return 0;
+}
+
+int addTagFiles(database *db, char *tag, int nfiles, ...){
+	va_list files;
+	va_start(files, nfiles);
+	for(uint64_t i = 0; i < nfiles; ++i){
+		char *file = va_arg(files, char*);
+		addFileTag(db, file, tag);
+	}
+	va_end(files);
+	return 0;
+}
+
+// When removing the file from the ltable and ctable we change the indexes of the tags in front
+// of it. Thus, we must change their indexes on the avl tree and mapping table. To do this we
+// simply get all tags with an index higher than the tag we removed and substract one from it,
+// since when removing a tag from the tables all we did was shift down all the tags in front of
+// it one position
+static void decreaseHigherIndexNode(node *n, uint64_t i){
+	if(n == NULL){
+		return;
+	}
+	if(n->i > i){
+		n->i--;
+	}
+	decreaseHigherIndexNode(n->left, i);
+	decreaseHigherIndexNode(n->right, i);
+}
+
+static void decreaseHigherFileIndexMap(mtable *mt, uint64_t i){
+	for(uint64_t j = 0; j < mt->size; ++j){
+		if(mt->table[j].file > i){
+			mt->table[j].file--;
+		}
+	}
+}
+
+static void decreaseHigherTagIndexMap(mtable *mt, uint64_t i){
+	for(uint64_t j = 0; j < mt->size; ++j){
+		if(mt->table[j].tag > i){
+			mt->table[j].tag--;
+		}
+	}
 }
 
 int removeFile(database *db, char *file){
 	uint32_t l;
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
-	uint64_t i = ltableSearch(db->lfiles, file);
+	uint64_t i = searchLtable(db->lfiles, file);
 	if(i == -1){
 		return -1;
 	}
@@ -98,17 +137,20 @@ int removeFile(database *db, char *file){
 		decreaseCount(db->ctags, r[j]);
 	}
 	uint64_t h = crc64(0, file, l);
-	ltableRemove(db->lfiles, file);
-	ctableRemove(db->cfiles, i);
-	deleteNode(db->hfiles, h);
-	mtableRemoveFile(db->map, i);
+	removeLtable(db->lfiles, file);
+	removeCtable(db->cfiles, i);
+	removeNode(db->hfiles, h);
+	removeFileMtable(db->map, i);
+	
+	decreaseHigherIndexNode(db->hfiles, i);
+	decreaseHigherFileIndexMap(db->map, i);
 	return 0;
 }
 
 int removeTag(database *db, char *tag){
 	uint32_t l;
 	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
-	uint64_t i = ltableSearch(db->ltags, tag);
+	uint64_t i = searchLtable(db->ltags, tag);
 	if(i == -1){
 		return -1;
 	}
@@ -118,20 +160,21 @@ int removeTag(database *db, char *tag){
 		decreaseCount(db->cfiles, r[j]);
 	}
 	uint64_t h = crc64(0, tag, l);
-	ltableRemove(db->ltags, tag);
-	ctableRemove(db->ctags, i);
-	deleteNode(db->htags, h);
-	mtableRemoveTag(db->map, i);
+	removeLtable(db->ltags, tag);
+	removeCtable(db->ctags, i);
+	removeNode(db->htags, h);
+	removeTagMtable(db->map, i);
+
+	decreaseHigherIndexNode(db->htags, i);
+	decreaseHigherTagIndexMap(db->map, i);
 	return 0;
 }
 
-// Stores in r a list with the indexes of the first n tags that this file has
-// If n is 0 or lower, it returns all of them. Stores in rl the length of r
 int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl){
 	uint32_t l;
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
 	uint64_t h = crc64(0, file, l);
-	uint64_t fi = nodeSearch(db->hfiles, h);
+	uint64_t fi = searchNode(db->hfiles, h);
 	if(fi == -1){
 		return -1;
 	}
@@ -151,17 +194,14 @@ int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl)
 			(*r)[c++] = db->map->table[i].tag;
 		}
 	}
-	
 	return 0;
 }
 
-// Stores in r a list with the indexes of the first n files that have this tag
-// If n is 0 or lower, it returns all of them. Stores in rl the length of r
 int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl){
 	uint32_t l;
 	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
 	uint64_t h = crc64(0, tag, l);
-	uint64_t ti = nodeSearch(db->htags, h);
+	uint64_t ti = searchNode(db->htags, h);
 	if(ti == -1){
 		return -1;
 	}
@@ -181,7 +221,6 @@ int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl){
 			(*r)[c++] = db->map->table[i].file;
 		}
 	}
-	
 	return 0;
 }
 
@@ -202,7 +241,6 @@ int storeDatabase(database *db, const char *path){
 	
 	char end[3] = "END";
 	fwrite(end, sizeof(char), 3, fp);
-	
 	fclose(fp);
 	return 0;
 }
@@ -255,11 +293,11 @@ void debugDatabase(database *db){
 	printf("Name: %s\n", db->name);
 	printf("\t-lfiles: %d\n", db->lfiles->size);
 	for(uint64_t i = 0; i < db->lfiles->size; ++i){
-		printf("\t\t+%s (%" PRIu64 ")\n", db->lfiles->table[i], db->cfiles->table[i]);
+		printf("\t\t+[%" PRIu64 "] %s (%" PRIu64 ")\n", i, db->lfiles->table[i], db->cfiles->table[i]);
 	}
 	printf("\t-ltags: %d\n", db->ltags->size);
 	for(uint64_t i = 0; i < db->ltags->size; ++i){
-		printf("\t\t+%s (%" PRIu64 ")\n", db->ltags->table[i], db->ctags->table[i]);
+		printf("\t\t+[%" PRIu64 "] %s (%" PRIu64 ")\n", i, db->ltags->table[i], db->ctags->table[i]);
 	}
 	printf("\t-hfiles: %d\n", db->lfiles->size);
 	debugAVLtree(db->hfiles);
@@ -267,7 +305,7 @@ void debugDatabase(database *db){
 	debugAVLtree(db->htags);
 	printf("\t-map: %d\n", db->map->size);
 	for(uint64_t i = 0; i < db->map->size; ++i){
-		printf("\t\t+%" PRIu64 ":%" PRIu64 "\n", db->map->table[i].file, db->map->table[i].tag);
+		printf("\t\t+[%" PRIu64 "] %" PRIu64 ":%" PRIu64 "\n", i, db->map->table[i].file, db->map->table[i].tag);
 	}
 	printf("\n");
 }

@@ -92,11 +92,11 @@ typedef node* tree;
 
 ltable *newLtable(uint64_t size);
 
-int ltableAdd(ltable *lt, char *str);
+int insertLtable(ltable *lt, char *str);
 
-int ltableRemove(ltable *lt, char *str);
+int removeLtable(ltable *lt, char *str);
 
-uint64_t ltableSearch(ltable *lt, char *str);
+uint64_t searchLtable(ltable *lt, char *str);
 
 int storeLtable(const ltable *lt, FILE *fp);
 
@@ -106,11 +106,11 @@ ltable *loadLtable(FILE *fp);
 
 ctable *newCtable(uint64_t size);
 
-int ctableAdd(ctable *ct, uint64_t n);
+int insertCtable(ctable *ct, uint64_t n);
 
-int ctableRemove(ctable *ct, uint64_t n);
+int removeCtable(ctable *ct, uint64_t n);
 
-uint64_t ctableSearch(ctable *ct, uint64_t n);
+uint64_t searchCtable(ctable *ct, uint64_t n);
 
 int storeCtable(const ctable *ht, FILE *fp);
 
@@ -120,19 +120,15 @@ ctable *loadCtable(FILE *fp);
 
 mtable *newMtable(uint64_t size);
 
-int mtableAdd(mtable *mt, relation r);
+int insertMtable(mtable *mt, relation r);
 
-int mtableRemove(mtable *mt, relation r);
+int removeMtable(mtable *mt, relation r);
 
-int mtableRemoveFile(mtable *mt, uint64_t file);
+int removeFileMtable(mtable *mt, uint64_t file);
 
-int mtableRemoveTag(mtable *mt, uint64_t tag);
+int removeTagMtable(mtable *mt, uint64_t tag);
 
-uint64_t mtableSearch(mtable *mt, relation r);
-
-uint64_t mtableSearchFile(mtable *mt, uint64_t file);
-
-uint64_t mtableSearchTag(mtable *mt, uint64_t tag);
+uint64_t searchMtable(mtable *mt, relation r);
 
 int storeMtable(const mtable *mt, FILE *fp);
 
@@ -144,9 +140,9 @@ node *newNode(uint64_t h, uint64_t i);
 
 node *insertNode(node *r, uint64_t h, uint64_t i);
 
-node *deleteNode(node *r, uint64_t h);
+node *removeNode(node *r, uint64_t h);
 
-uint64_t nodeSearch(node *n, uint64_t h);
+uint64_t searchNode(node *n, uint64_t h);
 
 int storeAVLTree(tree root, FILE *fp);
 
