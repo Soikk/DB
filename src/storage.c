@@ -38,7 +38,7 @@ int insertLtable(ltable *lt, char *str){
 
 int removeLtable(ltable *lt, char *str){
 	uint64_t i = searchLtable(lt, str);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		return -1;
 	}
 	lt->size--;
@@ -51,7 +51,6 @@ int removeLtable(ltable *lt, char *str){
 uint64_t searchLtable(ltable *lt, char *str){
 	uint32_t l;
 	str = normalizeStrLimit(str, &l, MAXPATH-1);
-	
 	for(uint64_t i = 0; i < lt->size; ++i){
 		if(sameStr(str, lt->table[i])){
 			return i;
@@ -204,7 +203,7 @@ int insertMtable(mtable *mt, relation r){
 
 int removeMtable(mtable *mt, relation r){
 	uint64_t i = searchMtable(mt, r);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		return -1;
 	}
 	mt->size--;
@@ -421,7 +420,6 @@ node *removeNode(node *r, uint64_t h){
 	return r;
 }
 
-// Searches for h, returns i
 uint64_t searchNode(node *n, uint64_t h){
 	if(n == NULL){
 		return UINTMAX_MAX;

@@ -151,6 +151,15 @@ STORAGE
 			https://www.geeksforgeeks.org/avl-tree-set-1-insertion/
 			https://www.geeksforgeeks.org/avl-tree-set-2-deletion/
 
+		static inline uint64_t max(uint64_t a, uint64_t b);
+			Returns the maximum of a and b.
+
+		static uint64_t height(node *n);
+			Returns the height of node n.
+
+		static int64_t balance(node *n);
+			Returns the balance of node n.
+
 		node *insertNode(node *r, uint64_t h, uint64_t i);
 			Inserts a new node with hash h and index i into node r, self balancing the node structure after having done so.
 			Returns a pointer to the resulting node in that position.

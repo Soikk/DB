@@ -19,7 +19,7 @@ uint64_t addFile(database *db, char *file){
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
 	uint64_t h = crc64(0, file, l);
 	uint64_t i = searchNode(db->hfiles, h);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		insertLtable(db->lfiles, file);
 		insertCtable(db->cfiles, 0);
 		i = db->lfiles->size-1;
@@ -33,7 +33,7 @@ uint64_t addTag(database *db, char *tag){
 	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
 	uint64_t h = crc64(0, tag, l);
 	uint64_t i = searchNode(db->htags, h);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		insertLtable(db->ltags, tag);
 		insertCtable(db->ctags, 0);
 		i = db->ltags->size-1;
@@ -92,11 +92,6 @@ int addTagFiles(database *db, char *tag, int nfiles, ...){
 	return 0;
 }
 
-// When removing the file from the ltable and ctable we change the indexes of the tags in front
-// of it. Thus, we must change their indexes on the avl tree and mapping table. To do this we
-// simply get all tags with an index higher than the tag we removed and substract one from it,
-// since when removing a tag from the tables all we did was shift down all the tags in front of
-// it one position
 static void decreaseHigherIndexNode(node *n, uint64_t i){
 	if(n == NULL){
 		return;
@@ -128,7 +123,7 @@ int removeFile(database *db, char *file){
 	uint32_t l;
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
 	uint64_t i = searchLtable(db->lfiles, file);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		return -1;
 	}
 	uint64_t *r, rl;
@@ -151,7 +146,7 @@ int removeTag(database *db, char *tag){
 	uint32_t l;
 	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
 	uint64_t i = searchLtable(db->ltags, tag);
-	if(i == -1){
+	if(i == UINTMAX_MAX){
 		return -1;
 	}
 	uint64_t *r, rl;
@@ -175,7 +170,7 @@ int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl)
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
 	uint64_t h = crc64(0, file, l);
 	uint64_t fi = searchNode(db->hfiles, h);
-	if(fi == -1){
+	if(fi == UINTMAX_MAX){
 		return -1;
 	}
 	
@@ -202,7 +197,7 @@ int searchTag(database *db, char *tag, uint64_t n, uint64_t **r, uint64_t *rl){
 	tag = normalizeStrLimit(tag, &l, MAXPATH-1);
 	uint64_t h = crc64(0, tag, l);
 	uint64_t ti = searchNode(db->htags, h);
-	if(ti == -1){
+	if(ti == UINTMAX_MAX){
 		return -1;
 	}
 	
