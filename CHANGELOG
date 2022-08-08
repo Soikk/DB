@@ -1,3 +1,9 @@
+1659987439 (Mon Aug 08 2022 21:37:19 GMT+0200 (Central European Summer Time))
+Forgot to update changelog. Also fixed*.
+
+1659987393 (Mon Aug 08 2022 21:36:33 GMT+0200 (Central European Summer Time))
+Standarized function names. Added addTagFiles. Updated DOC and fixes bugs
+
 1659879571 (Sun Aug 07 2022 15:39:31 GMT+0200 (Central European Summer Time))
 Added removing things from db. Ref counts update when removing things. Added changelog.
 
