@@ -3,7 +3,9 @@
 
 database *newDatabase(char *name){
 	database *db = malloc(sizeof(database));
-	memcpy(db->name, name, len(name)+1);
+	uint32_t l;
+	name = trimStrLimit(name, &l, 31);
+	memcpy(db->name, name, l+1);
 	db->lfiles = newLtable(0);
 	db->ltags = newLtable(0);
 	db->cfiles = newCtable(0);
@@ -277,7 +279,7 @@ void printDatabase(database *db){
 
 void debugAVLtree(node *n){
 	if(n != NULL){
-		printf("\t\t+%" PRIu64 " -> %" PRIu64 "\n", n->h, n->i);
+		printf("\t\t+ %" PRIu64 " -> %" PRIu64 "\n", n->h, n->i);
 		debugAVLtree(n->left);
 		debugAVLtree(n->right);
 	}
@@ -288,11 +290,11 @@ void debugDatabase(database *db){
 	printf("Name: %s\n", db->name);
 	printf("\t-lfiles: %d\n", db->lfiles->size);
 	for(uint64_t i = 0; i < db->lfiles->size; ++i){
-		printf("\t\t+[%" PRIu64 "] %s (%" PRIu64 ")\n", i, db->lfiles->table[i], db->cfiles->table[i]);
+		printf("\t\t+ %s (%" PRIu64 ")\n", db->lfiles->table[i], db->cfiles->table[i]);
 	}
 	printf("\t-ltags: %d\n", db->ltags->size);
 	for(uint64_t i = 0; i < db->ltags->size; ++i){
-		printf("\t\t+[%" PRIu64 "] %s (%" PRIu64 ")\n", i, db->ltags->table[i], db->ctags->table[i]);
+		printf("\t\t+ %s (%" PRIu64 ")\n", db->ltags->table[i], db->ctags->table[i]);
 	}
 	printf("\t-hfiles: %d\n", db->lfiles->size);
 	debugAVLtree(db->hfiles);
@@ -300,7 +302,7 @@ void debugDatabase(database *db){
 	debugAVLtree(db->htags);
 	printf("\t-map: %d\n", db->map->size);
 	for(uint64_t i = 0; i < db->map->size; ++i){
-		printf("\t\t+[%" PRIu64 "] %" PRIu64 ":%" PRIu64 "\n", i, db->map->table[i].file, db->map->table[i].tag);
+		printf("\t\t+ %" PRIu64 ":%" PRIu64 "\n", db->map->table[i].file, db->map->table[i].tag);
 	}
 	printf("\n");
 }

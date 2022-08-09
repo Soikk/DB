@@ -44,6 +44,36 @@ char *normalizeStrLimit(const char *str, uint32_t *l, uint32_t limit){
 	return nstr;
 }
 
+// Trims trailing spaces
+char *trimStr(const char *str, uint32_t *l){
+	*l = len(str);
+	uint32_t trw = 0;
+	while(isspace(str[--(*l)]))
+		++trw;
+	char *nstr = calloc(++(*l)+1, sizeof(char));
+	for(int i = 0; i < *l; ++i)
+		nstr[i] = str[i];
+	return nstr;
+}
+
+// Same as trimStr but with a limit (str[limit] will be equal to '\0')
+// If limit is 0, it will return NULL
+// WARNING: It allocates limit+1 characters
+char *trimStrLimit(const char *str, uint32_t *l, uint32_t limit){
+	if(limit == 0){
+		return NULL;
+	}
+	*l = len(str);
+	*l = (*l > limit) ? limit : *l;
+	uint32_t trw = 0;
+	while(isspace(str[--(*l)]))
+		++trw;
+	char *nstr = calloc(++(*l)+1, sizeof(char));
+	for(int i = 0; i < *l; ++i)
+		nstr[i] = str[i];
+	return nstr;
+}
+
 // Auxiliary function for creating a lookup table of the haystack
 // table[i] will be the number of shifts right until the next
 // separator when checking position i
