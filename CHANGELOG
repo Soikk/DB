@@ -1,6 +1,8 @@
+1660415513 (Sat Aug 13 2022 20:31:53 GMT+0200 (Central European Summer Time))
+Added README and images. Fixed random thing in changelog.
+
 1660410686 (Sat Aug 13 2022 19:11:26 GMT+0200 (Central European Summer Time))
 Got rid of old functionalities (strnatcmp, BM).
-
 
 1660409336 (Sat Aug 13 2022 18:48:56 GMT+0200 (Central European Summer Time))
 Added primitive repl, delete functions for database and remove tag from file function.
