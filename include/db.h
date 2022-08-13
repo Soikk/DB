@@ -10,7 +10,6 @@
 #include <stdarg.h>
 
 
-#include "strnatcmp.h"
 #include "crc64.h"
 
 #include "str.h"
@@ -18,6 +17,5 @@
 #include "database.h"
 #include "repl.h"
 #include "parser.h"
-#include "bm.h"
 
 #endif

@@ -504,13 +504,17 @@ int storeAVLTree(tree root, FILE *fp){
 	return 0;
 }
 
-static node *arrayToNodes(uint64_t *array, uint64_t i, uint64_t maxNodes){
-	if(i >= maxNodes*2){
+static node *arrayToNodes(uint64_t *array, uint64_t pos, uint64_t maxNodes){
+	if(pos >= maxNodes*2){
 		return NULL;
 	}
-	node *n = newNode(array[i+0], array[i+1]);
-	n->left = arrayToNodes(array, (2*i + 1)*2, maxNodes);
-	n->right = arrayToNodes(array, (2*i + 2)*2, maxNodes);
+	uint64_t h = array[pos+0], i = array[pos+1];
+	if(h == UINTMAX_MAX && i == UINTMAX_MAX){
+		return NULL;
+	}
+	node *n = newNode(h, i);
+	n->left = arrayToNodes(array, (2*pos + 1)*2, maxNodes);
+	n->right = arrayToNodes(array, (2*pos + 2)*2, maxNodes);
 	return n;
 }
 
