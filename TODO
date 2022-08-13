@@ -1,8 +1,8 @@
 TODO	Show files with multiple tags & viceversa
 
-TODO	Get rid of old functionalities (strnatcmp, BM)
-
 ----------------------------------------------------------------
+DONE	Get rid of old functionalities (strnatcmp, BM)
+
 DONE	Add remove tag from file function
 
 DONE	Add delete functions
