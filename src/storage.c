@@ -10,6 +10,13 @@ ltable *newLtable(uint64_t size){
 	return lt;
 }
 
+int deleteLtable(ltable **lt){
+	free((*lt)->table);
+	free(*lt);
+	*lt = NULL;
+	return 0;
+}
+
 int insertLtable(ltable *lt, char *str){
 	uint32_t ls;
 	str = normalizeStrLimit(str, &ls, MAXPATH-1);
@@ -105,6 +112,13 @@ ctable *newCtable(uint64_t size){
 	return ct;
 }
 
+int deleteCtable(ctable **ct){
+	free((*ct)->table);
+	free(*ct);
+	*ct = NULL;
+	return 0;
+}
+
 int insertCtable(ctable *ct, uint64_t n){
 	uint64_t *nct = malloc((ct->size+1)*sizeof(uint64_t));
 	for(uint64_t i = 0; i < ct->size; ++i){
@@ -182,6 +196,13 @@ mtable *newMtable(uint64_t size){
 	mt->size = size;
 	mt->table = malloc(size*sizeof(relation));
 	return mt;
+}
+
+int deleteMtable(mtable **mt){
+	free((*mt)->table);
+	free(*mt);
+	*mt = NULL;
+	return 0;
 }
 
 int insertMtable(mtable *mt, relation r){
@@ -299,6 +320,17 @@ node *newNode(uint64_t h, uint64_t i){
 	n->left = NULL;
 	n->right = NULL;
 	return n;
+}
+
+int deleteTree(tree *root){
+	if(*root == NULL){
+		return -1;
+	}
+	deleteTree(&(*root)->left);
+	deleteTree(&(*root)->right);
+	free(*root);
+	*root = NULL;
+	return 0;
 }
 
 static node *rotateNodeRight(node *r){

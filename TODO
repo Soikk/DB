@@ -1,6 +1,12 @@
+TODO	Show files with multiple tags & viceversa
+
 TODO	Get rid of old functionalities (strnatcmp, BM)
 
 ----------------------------------------------------------------
+DONE	Add remove tag from file function
+
+DONE	Add delete functions
+
 DONE	Must update all indexes in map when removing a file or a tag
 
 DONE	Standarize function names

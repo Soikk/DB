@@ -92,6 +92,8 @@ typedef node* tree;
 
 ltable *newLtable(uint64_t size);
 
+int deleteLtable(ltable **lt);
+
 int insertLtable(ltable *lt, char *str);
 
 int removeLtable(ltable *lt, char *str);
@@ -106,6 +108,8 @@ ltable *loadLtable(FILE *fp);
 
 ctable *newCtable(uint64_t size);
 
+int deleteCtable(ctable **ct);
+
 int insertCtable(ctable *ct, uint64_t n);
 
 int removeCtable(ctable *ct, uint64_t n);
@@ -119,6 +123,8 @@ ctable *loadCtable(FILE *fp);
 // MTABLE
 
 mtable *newMtable(uint64_t size);
+
+int deleteMtable(mtable **mt);
 
 int insertMtable(mtable *mt, relation r);
 
@@ -137,6 +143,8 @@ mtable *loadMtable(FILE *fp);
 // AVL TREE
 
 node *newNode(uint64_t h, uint64_t i);
+
+int deleteTree(tree *root);
 
 node *insertNode(node *r, uint64_t h, uint64_t i);
 

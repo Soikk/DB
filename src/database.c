@@ -16,6 +16,34 @@ database *newDatabase(char *name){
 	return db;
 }
 
+int freeDatabase(database **db){
+	deleteLtable(&(*db)->lfiles);
+	deleteLtable(&(*db)->ltags);
+	deleteCtable(&(*db)->cfiles);
+	deleteCtable(&(*db)->ctags);
+	deleteTree(&(*db)->hfiles);
+	deleteTree(&(*db)->htags);
+	deleteMtable(&(*db)->map);
+	free((*db)->name);
+	free(*db);
+	*db = NULL;
+	return 0;
+}
+
+int deleteDatabase(database **db){
+	if(*db == NULL){
+		fprintf(stderr, "Error: can't delete NULL database\n");
+		return -1;
+	}
+	int r = remove((*db)->name);
+	if(r != 0){
+		fprintf(stderr, "Error deleting database '%s'\n", (*db)->name);
+		return -1;
+	}
+	freeDatabase(db);
+	return 0;
+}
+
 uint64_t addFile(database *db, char *file){
 	uint32_t l;
 	file = normalizeStrLimit(file, &l, MAXPATH-1);
@@ -51,47 +79,6 @@ static void increaseCount(ctable *ct, uint64_t i){
 
 static void decreaseCount(ctable *ct, uint64_t i){
 	ct->table[i]--;
-}
-
-static int addRelation(database *db, relation r){
-	if(searchMtable(db->map, r) == UINTMAX_MAX){
-		insertMtable(db->map, r);
-		return 0;
-	}
-	return -1;
-}
-
-int addFileTag(database *db, char *file, char *tag){
-	uint64_t fi = addFile(db, file), ti = addTag(db, tag);
-	int r = addRelation(db, (relation){.file = fi, .tag = ti});
-	if(r == 0){
-		increaseCount(db->cfiles, fi);
-		increaseCount(db->ctags, ti);
-		return 0;
-	}
-	return -1;
-}
-
-int addFileTags(database *db, char *file, int ntags, ...){
-	va_list tags;
-	va_start(tags, ntags);
-	for(uint64_t i = 0; i < ntags; ++i){
-		char *tag = va_arg(tags, char*);
-		addFileTag(db, file, tag);
-	}
-	va_end(tags);
-	return 0;
-}
-
-int addTagFiles(database *db, char *tag, int nfiles, ...){
-	va_list files;
-	va_start(files, nfiles);
-	for(uint64_t i = 0; i < nfiles; ++i){
-		char *file = va_arg(files, char*);
-		addFileTag(db, file, tag);
-	}
-	va_end(files);
-	return 0;
 }
 
 static void decreaseHigherIndexNode(node *n, uint64_t i){
@@ -164,6 +151,69 @@ int removeTag(database *db, char *tag){
 
 	decreaseHigherIndexNode(db->htags, i);
 	decreaseHigherTagIndexMap(db->map, i);
+	return 0;
+}
+
+static int addRelation(database *db, relation r){
+	if(searchMtable(db->map, r) == UINTMAX_MAX){
+		insertMtable(db->map, r);
+		return 0;
+	}
+	return -1;
+}
+
+int addFileTag(database *db, char *file, char *tag){
+	uint64_t fi = addFile(db, file), ti = addTag(db, tag);
+	int r = addRelation(db, (relation){.file = fi, .tag = ti});
+	if(r == 0){
+		increaseCount(db->cfiles, fi);
+		increaseCount(db->ctags, ti);
+		return 0;
+	}
+	return -1;
+}
+
+int addFileTags(database *db, char *file, int ntags, ...){
+	va_list tags;
+	va_start(tags, ntags);
+	for(uint64_t i = 0; i < ntags; ++i){
+		char *tag = va_arg(tags, char*);
+		addFileTag(db, file, tag);
+	}
+	va_end(tags);
+	return 0;
+}
+
+int addTagFiles(database *db, char *tag, int nfiles, ...){
+	va_list files;
+	va_start(files, nfiles);
+	for(uint64_t i = 0; i < nfiles; ++i){
+		char *file = va_arg(files, char*);
+		addFileTag(db, file, tag);
+	}
+	va_end(files);
+	return 0;
+}
+
+int removeFileTag(database *db, char *file, char *tag){
+	uint32_t lf, lt;
+	file = normalizeStrLimit(file, &lf, MAXPATH-1);
+	tag = normalizeStrLimit(tag, &lt, MAXPATH-1);
+	uint64_t hf = crc64(0, file, lf), ht = crc64(0, tag, lt);
+	uint64_t fi = searchNode(db->hfiles, hf), ti = searchNode(db->htags, ht);
+	if(fi == UINTMAX_MAX){
+		fprintf(stderr, "Error: no such file '%s'\n", file);
+		return -1;
+	}
+	if(ti == UINTMAX_MAX){
+		fprintf(stderr, "Error: no such tag '%s'\n", tag);
+		return -1;
+	}
+	int status = removeMtable(db->map, (relation){.file = fi, .tag = ti});
+	if(status == -1){
+		fprintf(stderr, "Error: tag '%s' not associated with file '%s'\n", tag, file);
+		return -1;
+	}
 	return 0;
 }
 
@@ -244,6 +294,10 @@ int storeDatabase(database *db, const char *path){
 
 database *loadDatabase(const char* path){
 	FILE *fp = fopen(path, "rb");
+	if(fp == NULL){
+		fprintf(stderr, "Error: no such file (%s)\n", path);
+		return NULL;
+	}
 	char *header = calloc(2, sizeof(char));
 	fread(header, sizeof(char), 2, fp);
 	if(!sameStr(header, "DB")){
@@ -277,7 +331,7 @@ void printDatabase(database *db){
 	printf("\n");
 }
 
-void debugAVLtree(node *n){
+static void debugAVLtree(node *n){
 	if(n != NULL){
 		printf("\t\t+ %" PRIu64 " -> %" PRIu64 "\n", n->h, n->i);
 		debugAVLtree(n->left);
@@ -286,6 +340,10 @@ void debugAVLtree(node *n){
 }
 
 void debugDatabase(database *db){
+	if(db == NULL){
+		fprintf(stderr, "Error: database is NULL\n");
+		return;
+	}
 	printf("\n");
 	printf("Name: %s\n", db->name);
 	printf("\t-lfiles: %d\n", db->lfiles->size);

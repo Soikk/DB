@@ -13,11 +13,11 @@
 #include "strnatcmp.h"
 #include "crc64.h"
 
-#include "repl.h"
-#include "parser.h"
+#include "str.h"
 #include "storage.h"
 #include "database.h"
-#include "str.h"
+#include "repl.h"
+#include "parser.h"
 #include "bm.h"
 
 #endif

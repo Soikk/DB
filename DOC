@@ -1,5 +1,17 @@
 OBSERVATIONS
 
+Notation:
+	CREATE miDB -> creates new database called miDB.
+	CREATE miDB miDB2 -> creates two new databases
+	CREATE "miDB miDB2" -> creates a new database called "miDB miDB2" (without the quotation marks).
+	
+	OPEN ..
+	
+	TAG file WITH tag -> adds tag to file
+	TAG file1 file2 WITH tag -> adds tag to file1, file2
+	TAG file WITH tag1 tag2 -> adds tag1, tag2 to file
+
+
 STORAGE
 
 	LTABLE
@@ -253,25 +265,6 @@ DATABASE
 	static void decreaseCount(ctable *ct, uint64_t i);
 		Auxiliary function that decreases the count of cell i at ct's table;
 
-	static int addRelation(database *db, relation r);
-		Auxiliary function that adds a relation to the mapping table in db.
-		This function returns 0 if r was inserted correctly or -1 if r was already on the database.
-
-	int addFileTag(database *db, char *file, char *tag);
-		This function uses the auxiliary functions addRelation and increaseCount.
-		Adds a file and a tag to the database, and its relation.
-		If the file or the tag or both were already on the database, it still adds the relation.
-		If the relation wasn't in the database, it adds one to the cfiles' table for the file index and another one to the ctags' table for the file index, and then returns 0.
-		If the relation was in the database, it returns -1.
-
-	int addFileTags(database *db, char *file, int ntags, ...);
-		Adds multiple tags to a single file using addFileTag.
-		Returns 0 upon completion.
-
-	int addTagFiles(database *db, char *tag, int nfiles, ...);
-		Adds the same tag to multiple files using addFileTag.
-		Returns 0 upon completion.
-
 	static void decreaseHigherIndexNode(node *n, uint64_t i);
 		Auxiliary function that decreases the indexes in the node structure of n by one if they're bigger than i.
 
@@ -292,6 +285,25 @@ DATABASE
 		Removing the "string" from ltags and the count from ctags moves all higher entries a place down.
 		To counter this, we use the auxiliary functions decreaseHigherIndexNode and decreaseHigherTagIndexMap to update all the higher indexes in htags and map.
 		This function returns 0 upon completion or -1 if the tag is not in the database.
+
+	static int addRelation(database *db, relation r);
+		Auxiliary function that adds a relation to the mapping table in db.
+		This function returns 0 if r was inserted correctly or -1 if r was already on the database.
+
+	int addFileTag(database *db, char *file, char *tag);
+		This function uses the auxiliary functions addRelation and increaseCount.
+		Adds a file and a tag to the database, and its relation.
+		If the file or the tag or both were already on the database, it still adds the relation.
+		If the relation wasn't in the database, it adds one to the cfiles' table for the file index and another one to the ctags' table for the file index, and then returns 0.
+		If the relation was in the database, it returns -1.
+
+	int addFileTags(database *db, char *file, int ntags, ...);
+		Adds multiple tags to a single file using addFileTag.
+		Returns 0 upon completion.
+
+	int addTagFiles(database *db, char *tag, int nfiles, ...);
+		Adds the same tag to multiple files using addFileTag.
+		Returns 0 upon completion.
 
 	int searchFile(database *db, char *file, uint64_t n, uint64_t **r, uint64_t *rl);
 		Stores in r a list with the indexes of the first n tags that this file has.

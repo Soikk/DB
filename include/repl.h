@@ -4,9 +4,9 @@
 #include "db.h"
 
 
-typedef struct {
+typedef struct{
 	char *buffer;
-	ssize_t inputSize;
+	int64_t inputSize;
 } inputBuffer;
 
 
@@ -16,6 +16,6 @@ void freeInputBuffer(inputBuffer *in);
 
 void getInput(inputBuffer *in);
 
-void prompt(void);
+void prompt(database *db);
 
 #endif
