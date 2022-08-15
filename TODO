@@ -33,3 +33,6 @@ DONE	Change DB model from struct row
 DONE	Try different hashing functions (current: crc64), e.g murmur
 
 DONE	Try to improve 'sameStr' by maybe not having to check s2[i2]
+
+DONE	PR Merge test with Layne
+
