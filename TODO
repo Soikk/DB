@@ -1,6 +1,8 @@
 TODO	Show files with multiple tags & viceversa
 
 ----------------------------------------------------------------
+DONE	PR Merge test with Layne
+
 DONE	Get rid of old functionalities (strnatcmp, BM)
 
 DONE	Add remove tag from file function
@@ -33,6 +35,3 @@ DONE	Change DB model from struct row
 DONE	Try different hashing functions (current: crc64), e.g murmur
 
 DONE	Try to improve 'sameStr' by maybe not having to check s2[i2]
-
-DONE	PR Merge test with Layne
-
